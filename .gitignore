@@ -70,9 +70,6 @@ crashlytics-build.properties
 # Recording
 /Recordings
 
-# 로컬 문서
-/Docs/
-
 # macOS / Windows
 .DS_Store
 Thumbs.db
