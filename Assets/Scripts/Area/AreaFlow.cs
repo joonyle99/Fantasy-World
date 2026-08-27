@@ -13,15 +13,13 @@ namespace FantasyWorld.Area
     {
         private readonly AreaObjectiveSet _objectiveSet;
         private readonly ObjectiveManager _objectiveManager;
-        private readonly NpcRegistry _npcRegistry;
 
         private ObjectiveZone[] _zones = Array.Empty<ObjectiveZone>();
 
-        public AreaFlow(AreaObjectiveSet objectiveSet, ObjectiveManager objectiveManager, NpcRegistry npcRegistry)
+        public AreaFlow(AreaObjectiveSet objectiveSet, ObjectiveManager objectiveManager)
         {
             _objectiveSet = objectiveSet;
             _objectiveManager = objectiveManager;
-            _npcRegistry = npcRegistry;
         }
 
         void IStartable.Start()
@@ -31,8 +29,6 @@ namespace FantasyWorld.Area
             _zones = UnityEngine.Object.FindObjectsByType<ObjectiveZone>(FindObjectsSortMode.None);
             foreach (var zone in _zones)
                 zone.ConditionMet += OnZoneConditionMet;
-
-            // TODO: NPC 를 NpcRegistry 에 등록
         }
 
         public void Dispose()

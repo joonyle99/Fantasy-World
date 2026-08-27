@@ -5,20 +5,27 @@ using FantasyWorld.World;
 namespace FantasyWorld.Area
 {
     /// <summary>
-    /// 구역 NPC 배치·순찰·반응 디렉터. 구역 활성 동안 NpcRegistry 에 자신의 NPC를 등록한다.
+    /// 구역 NPC 디렉터. 구역 로드 시 씬의 모든 Npc 를 찾아 의존성을 주입(Initialize)한다.
+    /// AreaFlow 가 ObjectiveZone 을 연결하는 것과 같은 패턴.
     /// </summary>
     public sealed class AreaNpcController : MonoBehaviour
     {
+        private GooseController _goose;
         private NpcRegistry _npcRegistry;
         private GameplayEventBus _eventBus;
 
         [Inject]
-        public void Construct(NpcRegistry npcRegistry, GameplayEventBus eventBus)
+        public void Construct(GooseController goose, NpcRegistry npcRegistry, GameplayEventBus eventBus)
         {
+            _goose = goose;
             _npcRegistry = npcRegistry;
             _eventBus = eventBus;
         }
 
-        // TODO: NPC 스폰/등록, 순찰 경로 할당
+        private void Start()
+        {
+            foreach (var npc in FindObjectsByType<Npc>(FindObjectsSortMode.None))
+                npc.Initialize(_goose, _npcRegistry, _eventBus);
+        }
     }
 }

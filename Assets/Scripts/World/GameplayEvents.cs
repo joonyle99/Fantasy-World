@@ -57,4 +57,26 @@ namespace FantasyWorld.World
             AreaName = areaName;
         }
     }
+
+    public readonly struct NpcStateChanged
+    {
+        public readonly Npc Npc;
+        public readonly NpcState State;
+
+        public NpcStateChanged(Npc npc, NpcState state)
+        {
+            Npc = npc;
+            State = state;
+        }
+    }
+
+    public readonly struct GooseCaught
+    {
+        public readonly Npc By;
+
+        public GooseCaught(Npc by)
+        {
+            By = by;
+        }
+    }
 }
