@@ -1,4 +1,5 @@
 using UnityEngine;
+using JoonyleGameDevKit;
 
 namespace FantasyWorld.World
 {
@@ -10,7 +11,8 @@ namespace FantasyWorld.World
     }
 
     /// <summary>
-    /// 한 NPC. 시야(거리 + 각도 + 시선 차단)로 구스를 인지하고 상태 머신으로 반응한다.
+    /// 한 NPC. 시야(거리 + 각도 + 시선 차단)로 구스를 인지하고,
+    /// JoonyleGameDevKit 의 StateMachine{T} 로 반응한다.
     /// Idle → (구스 목격 / 근처 울음) → Alerted(추격) → 시야 상실 → Returning(귀가) → Idle.
     /// 이동은 지금은 단순 MoveTowards. 나중에 NavMeshAgent 로 교체.
     /// </summary>
@@ -32,13 +34,15 @@ namespace FantasyWorld.World
         private NpcRegistry _registry;
         private GameplayEventBus _eventBus;
 
-        private NpcState _state = NpcState.Idle;
-        private Vector3 _homePosition;
-        private float _lostSightTimer;
-        private bool _caughtThisChase;
-        private bool _initialized;
+        private StateMachine<Npc> _stateMachine;
+        private readonly IdleState _idleState = new();
+        private readonly AlertedState _alertedState = new();
+        private readonly ReturningState _returningState = new();
 
-        public NpcState State => _state;
+        private Vector3 _homePosition;
+        private NpcState _currentState = NpcState.Idle;
+
+        public NpcState State => _currentState;
 
         /// <summary>AreaNpcController 가 구역 로드 시 호출한다.</summary>
         public void Initialize(GooseController goose, NpcRegistry registry, GameplayEventBus eventBus)
@@ -50,12 +54,23 @@ namespace FantasyWorld.World
 
             _registry.Register(this);
             _eventBus.Subscribe<GooseHonked>(OnHonk);
-            _initialized = true;
+
+            _stateMachine = new StateMachine<Npc>(this);
+            _stateMachine.AddState(_idleState);
+            _stateMachine.AddState(_alertedState);
+            _stateMachine.AddState(_returningState);
+
+            _stateMachine.AddTransition<IdleState, AlertedState>(CanSeeGoose);
+            _stateMachine.AddTransition<AlertedState, ReturningState>(() => _alertedState.LostSightExpired);
+            _stateMachine.AddTransition<ReturningState, AlertedState>(CanSeeGoose);
+            _stateMachine.AddTransition<ReturningState, IdleState>(() => _returningState.ArrivedHome);
+
+            _stateMachine.ChangeState<IdleState>();
         }
 
         private void OnDestroy()
         {
-            if (!_initialized)
+            if (_stateMachine == null)
                 return;
 
             _registry.Unregister(this);
@@ -64,63 +79,10 @@ namespace FantasyWorld.World
 
         private void Update()
         {
-            if (!_initialized)
-                return;
-
-            var canSeeGoose = CanSeeGoose();
-
-            switch (_state)
-            {
-                case NpcState.Idle:
-                    if (canSeeGoose)
-                        SetState(NpcState.Alerted);
-                    break;
-
-                case NpcState.Alerted:
-                    Chase(canSeeGoose);
-                    break;
-
-                case NpcState.Returning:
-                    ReturnHome(canSeeGoose);
-                    break;
-            }
+            _stateMachine?.Update(Time.deltaTime);
         }
 
-        private void Chase(bool canSeeGoose)
-        {
-            MoveToward(_goose.transform.position);
-
-            // 이번 추격에서 한 번만 발행 (매 프레임 스팸 방지)
-            if (!_caughtThisChase && Distance2D(_goose.transform.position) < _catchDistance)
-            {
-                _caughtThisChase = true;
-                _eventBus.Publish(new GooseCaught(this));
-            }
-
-            if (canSeeGoose)
-            {
-                _lostSightTimer = 0f;
-                return;
-            }
-
-            _lostSightTimer += Time.deltaTime;
-            if (_lostSightTimer >= _loseSightGrace)
-                SetState(NpcState.Returning);
-        }
-
-        private void ReturnHome(bool canSeeGoose)
-        {
-            if (canSeeGoose)
-            {
-                SetState(NpcState.Alerted);
-                return;
-            }
-
-            MoveToward(_homePosition);
-
-            if (Distance2D(_homePosition) < _homeArriveDistance)
-                SetState(NpcState.Idle);
-        }
+        // ============== 인지 / 이동 ==============
 
         private bool CanSeeGoose()
         {
@@ -161,26 +123,89 @@ namespace FantasyWorld.World
 
         private void OnHonk(GooseHonked honk)
         {
-            if (_state != NpcState.Idle)
+            if (_stateMachine.CurrState != _idleState)
                 return;
 
             if (Vector3.Distance(transform.position, honk.Position) < _viewDistance * 1.5f)
-                SetState(NpcState.Alerted);
+                _stateMachine.ChangeState<AlertedState>();
         }
 
-        private void SetState(NpcState next)
+        private void RaiseStateChanged(NpcState state)
         {
-            if (_state == next)
-                return;
+            _currentState = state;
+            _eventBus.Publish(new NpcStateChanged(this, state));
+        }
 
-            if (next == NpcState.Alerted)
+        // ============== 상태 ==============
+
+        private sealed class IdleState : StateBase<Npc>
+        {
+            public override void Enter(Npc owner) => owner.RaiseStateChanged(NpcState.Idle);
+            public override void Update(Npc owner, float deltaTime) { }
+            public override void Exit(Npc owner) { }
+        }
+
+        private sealed class AlertedState : StateBase<Npc>
+        {
+            /// <summary>시야를 놓친 지 유예 시간이 지났는지 (Returning 으로의 전이 조건).</summary>
+            public bool LostSightExpired { get; private set; }
+
+            private float _lostSightTimer;
+            private bool _caught;
+
+            public override void Enter(Npc owner)
             {
                 _lostSightTimer = 0f;
-                _caughtThisChase = false;
+                LostSightExpired = false;
+                _caught = false;
+                owner.RaiseStateChanged(NpcState.Alerted);
             }
 
-            _state = next;
-            _eventBus.Publish(new NpcStateChanged(this, next));
+            public override void Update(Npc owner, float deltaTime)
+            {
+                owner.MoveToward(owner._goose.transform.position);
+
+                // 이번 추격에서 한 번만 발행
+                if (!_caught && owner.Distance2D(owner._goose.transform.position) < owner._catchDistance)
+                {
+                    _caught = true;
+                    owner._eventBus.Publish(new GooseCaught(owner));
+                }
+
+                if (owner.CanSeeGoose())
+                {
+                    _lostSightTimer = 0f;
+                    return;
+                }
+
+                _lostSightTimer += deltaTime;
+                if (_lostSightTimer >= owner._loseSightGrace)
+                    LostSightExpired = true;
+            }
+
+            public override void Exit(Npc owner) { }
+        }
+
+        private sealed class ReturningState : StateBase<Npc>
+        {
+            /// <summary>집에 도착했는지 (Idle 로의 전이 조건).</summary>
+            public bool ArrivedHome { get; private set; }
+
+            public override void Enter(Npc owner)
+            {
+                ArrivedHome = false;
+                owner.RaiseStateChanged(NpcState.Returning);
+            }
+
+            public override void Update(Npc owner, float deltaTime)
+            {
+                owner.MoveToward(owner._homePosition);
+
+                if (owner.Distance2D(owner._homePosition) < owner._homeArriveDistance)
+                    ArrivedHome = true;
+            }
+
+            public override void Exit(Npc owner) { }
         }
     }
 }
