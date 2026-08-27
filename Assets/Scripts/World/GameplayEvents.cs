@@ -38,12 +38,24 @@ namespace FantasyWorld.World
         }
     }
 
+    public readonly struct AreaObjectivesLoaded
+    {
+        public readonly AreaObjectiveSet Area;
+
+        public AreaObjectivesLoaded(AreaObjectiveSet area)
+        {
+            Area = area;
+        }
+    }
+
     public readonly struct ObjectiveCompleted
     {
+        public readonly string CompletionKey;
         public readonly string Description;
 
-        public ObjectiveCompleted(string description)
+        public ObjectiveCompleted(string completionKey, string description)
         {
+            CompletionKey = completionKey;
             Description = description;
         }
     }

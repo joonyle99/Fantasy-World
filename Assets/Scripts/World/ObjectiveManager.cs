@@ -31,6 +31,8 @@ namespace FantasyWorld.World
             _activeArea = area;
             _areaCleared = false;
             _completedKeys.Clear();
+
+            _eventBus.Publish(new AreaObjectivesLoaded(area));
         }
 
         public bool IsCompleted(string completionKey) => _completedKeys.Contains(completionKey);
@@ -47,7 +49,7 @@ namespace FantasyWorld.World
             foreach (var objective in _activeArea.Objectives)
             {
                 if (objective.CompletionKey == completionKey)
-                    _eventBus.Publish(new ObjectiveCompleted(objective.Description));
+                    _eventBus.Publish(new ObjectiveCompleted(completionKey, objective.Description));
             }
 
             if (AllRequiredCompleted())

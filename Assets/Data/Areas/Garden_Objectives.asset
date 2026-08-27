@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: FantasyWorld::FantasyWorld.Area.AreaObjectiveSet
   _areaName: Garden
   _objectives:
-  - _description: "\uC0AC\uACFC\uB97C \uBC14\uAD6C\uB2C8\uC5D0 \uB123\uAE30"
+  - _description: Put the apple in the basket
     _completionKey: apple_in_basket
     _optional: 0
-  - _description: "\uACF5\uC744 \uD638\uC218\uC5D0 \uBE60\uB728\uB9AC\uAE30"
+  - _description: Drop the ball in the lake
     _completionKey: ball_in_lake
     _optional: 1

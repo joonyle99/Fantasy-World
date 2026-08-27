@@ -32,6 +32,7 @@ namespace FantasyWorld.World
             // 씬에 배치된 뷰 컴포넌트 — 씬에서 찾아 주입
             builder.RegisterComponentInHierarchy<GooseController>();
             builder.RegisterComponentInHierarchy<CameraDirector>();
+            builder.RegisterComponentInHierarchy<ObjectiveHudView>();
 
             // 상태만 들고 있는 순수 시스템 — 요청 시 생성
             builder.Register<GameplayEventBus>(Lifetime.Singleton);

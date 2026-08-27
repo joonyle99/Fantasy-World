@@ -6,7 +6,8 @@
         "Joonyle.GameDevKit",
         "UniTask",
         "FMODUnity",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
