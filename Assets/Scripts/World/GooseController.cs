@@ -1,4 +1,3 @@
-using FMODUnity;
 using VContainer;
 using UnityEngine;
 using FantasyWorld.Core;
@@ -23,14 +22,10 @@ namespace FantasyWorld.World
         [Header("Interaction")]
         [SerializeField] private Transform _beakPoint;
 
-        [Header("Audio")]
-        [SerializeField] private EventReference _honkSound;
-
         /// <summary>부리 위치. InteractionSystem 이 집기 판정·부착 기준으로 쓴다.</summary>
         public Transform BeakPoint => _beakPoint;
 
         private InputService _inputService;
-        private AudioService _audioService;
         private GameplayEventBus _eventBus;
 
         private CharacterController _controller;
@@ -39,10 +34,9 @@ namespace FantasyWorld.World
         private float _verticalVelocity;
 
         [Inject]
-        public void Construct(InputService inputService, AudioService audioService, GameplayEventBus eventBus)
+        public void Construct(InputService inputService, GameplayEventBus eventBus)
         {
             _inputService = inputService;
-            _audioService = audioService;
             _eventBus = eventBus;
         }
 
@@ -125,7 +119,6 @@ namespace FantasyWorld.World
         private void OnHonk()
         {
             _eventBus.Publish(new GooseHonked(transform.position));
-            _audioService.PlayOneShot(_honkSound, transform.position);
 
             // TODO: 울음 애니메이션
         }

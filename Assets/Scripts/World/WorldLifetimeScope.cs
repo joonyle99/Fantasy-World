@@ -1,4 +1,5 @@
 using VContainer;
+using UnityEngine;
 using VContainer.Unity;
 
 // ============================================================
@@ -27,6 +28,8 @@ namespace FantasyWorld.World
     /// </summary>
     public sealed class WorldLifetimeScope : LifetimeScope
     {
+        [SerializeField] private GameSounds _gameSounds;
+
         protected override void Configure(IContainerBuilder builder)
         {
             // 씬에 배치된 뷰 컴포넌트 — 씬에서 찾아 주입
@@ -34,13 +37,17 @@ namespace FantasyWorld.World
             builder.RegisterComponentInHierarchy<CameraDirector>();
             builder.RegisterComponentInHierarchy<ObjectiveHudView>();
 
+            // 데이터 에셋
+            builder.RegisterInstance(_gameSounds);
+
             // 상태만 들고 있는 순수 시스템 — 요청 시 생성
             builder.Register<GameplayEventBus>(Lifetime.Singleton);
             builder.Register<NpcRegistry>(Lifetime.Singleton);
             builder.Register<ObjectiveManager>(Lifetime.Singleton);
 
-            // 매 프레임 콜백이 필요한 시스템 — 빌드 시 즉시 생성
+            // 매 프레임 / 이벤트 콜백이 필요한 시스템 — 빌드 시 즉시 생성
             builder.RegisterEntryPoint<InteractionSystem>().AsSelf();
+            builder.RegisterEntryPoint<GameplayAudioDirector>();
 
             // World 세션 흐름의 주체
             builder.RegisterEntryPoint<WorldFlow>();
