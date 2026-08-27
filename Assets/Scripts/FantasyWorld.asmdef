@@ -1,0 +1,20 @@
+{
+    "name": "FantasyWorld",
+    "rootNamespace": "FantasyWorld",
+    "references": [
+        "VContainer",
+        "Joonyle.GameDevKit",
+        "UniTask",
+        "FMODUnity",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
