@@ -1,2 +1,12 @@
-Assets/Plugins/FMOD/**/*.bundle text eol=lf
+Assets/Plugins/FMOD/**/*.bundle filter=lfs diff=lfs merge=lfs -text
+Assets/Plugins/FMOD/**/*.bundle/** filter=lfs diff=lfs merge=lfs -text
+Assets/Plugins/FMOD/**/*.jar filter=lfs diff=lfs merge=lfs -text
+Assets/Plugins/FMOD/**/*.aar filter=lfs diff=lfs merge=lfs -text
+Assets/Plugins/FMOD/**/*.a filter=lfs diff=lfs merge=lfs -text
+Assets/Plugins/FMOD/**/*.dll filter=lfs diff=lfs merge=lfs -text
+Assets/Plugins/FMOD/**/*.so filter=lfs diff=lfs merge=lfs -text
+Assets/Plugins/FMOD/**/*.dylib filter=lfs diff=lfs merge=lfs -text
 Assets/Plugins/FMOD/**/Info.plist text eol=lf
+
+# Unity .meta 파일은 LFS에서 제외 (텍스트로 diff 가능해야 함)
+Assets/Plugins/FMOD/**/*.meta -filter -diff -merge text
