@@ -1,3 +1,4 @@
+using FMODUnity;
 using VContainer;
 using UnityEngine;
 using FantasyWorld.Core;
@@ -21,6 +22,9 @@ namespace FantasyWorld.World
 
         [Header("Interaction")]
         [SerializeField] private Transform _beakPoint;
+
+        [Header("Audio")]
+        [SerializeField] private EventReference _honkSound;
 
         /// <summary>부리 위치. InteractionSystem 이 집기 판정·부착 기준으로 쓴다.</summary>
         public Transform BeakPoint => _beakPoint;
@@ -121,8 +125,9 @@ namespace FantasyWorld.World
         private void OnHonk()
         {
             _eventBus.Publish(new GooseHonked(transform.position));
+            _audioService.PlayOneShot(_honkSound, transform.position);
 
-            // TODO: 울음 애니메이션 + _audioService 로 FMOD 이벤트 재생
+            // TODO: 울음 애니메이션
         }
     }
 }
