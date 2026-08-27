@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assembly Definition (asmdef) 이해하기</title>
+<style>
+  :root {
+    --bg: #fafaf8;
+    --fg: #2a2622;
+    --muted: #6b6459;
+    --accent: #b5651d;
+    --accent-soft: #f3e4d0;
+    --border: #e5ddd0;
+    --card-bg: #ffffff;
+    --code-bg: #f1ece2;
+    --note-bg: #fdf3e3;
+    --note-border: #e8c98a;
+    --ok: #3f7d3f;
+    --bad: #b23c3c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1a17;
+      --fg: #e8e3da;
+      --muted: #a39a8c;
+      --accent: #e0954a;
+      --accent-soft: #3a2c1c;
+      --border: #3a352d;
+      --card-bg: #24211d;
+      --code-bg: #2a2621;
+      --note-bg: #2e2517;
+      --note-border: #6b5228;
+      --ok: #7fb97f;
+      --bad: #e08a8a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+    line-height: 1.65;
+    padding: 48px 20px 80px;
+  }
+  .page { max-width: 780px; margin: 0 auto; }
+  h1 { font-size: 1.9rem; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .subtitle { color: var(--muted); font-size: 1rem; margin: 0 0 40px; }
+  h2 {
+    font-size: 1.3rem;
+    margin: 44px 0 14px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--accent-soft);
+  }
+  h3 { font-size: 1.05rem; margin: 26px 0 10px; }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 0 0 14px; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: "Cascadia Code", "Consolas", "D2Coding", monospace;
+    font-size: 0.88em;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0 0 18px;
+  }
+  pre code { background: none; padding: 0; font-size: 0.85rem; line-height: 1.55; }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 0 0 18px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid var(--note-border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 0 0 18px;
+  }
+  .note strong { color: var(--accent); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 18px;
+    font-size: 0.92rem;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--accent-soft); font-weight: 600; }
+  .tag {
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .ok { color: var(--ok); font-weight: 600; }
+  .bad { color: var(--bad); font-weight: 600; }
+  .tree {
+    font-family: "Cascadia Code", "Consolas", "D2Coding", monospace;
+    font-size: 0.85rem;
+    white-space: pre;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0 0 18px;
+  }
+  footer {
+    margin-top: 56px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <span class="tag">FantasyWorld · 프로젝트 노트</span>
+  <h1>Assembly Definition (asmdef) 이해하기</h1>
+  <p class="subtitle">
+    <code>Assets/Scripts/FantasyWorld.asmdef</code> 를 왜 만들었고, 참조를 걸면 컴파일이 어떻게 동작하는지 정리.
+  </p>
+
+  <h2>1. 한 줄 요약</h2>
+  <div class="card">
+    <p style="margin:0">
+      asmdef = <strong>“이 폴더 하위 스크립트를 별도의 <code>.dll</code> 로 컴파일해라”</strong> 라고 Unity에 알려주는 표식.
+      우리는 <code>Assets/Scripts/</code> 안의 게임 로직을 <code>FantasyWorld.dll</code> 이라는 독립 묶음으로 격리하려고 만들었다.
+    </p>
+  </div>
+
+  <h2>2. C# 컴파일의 최소 단위는 “파일”이 아니라 “어셈블리(dll)”</h2>
+  <p>
+    C# 컴파일러(Roslyn)는 <em>“한 어셈블리에 속한 <code>.cs</code> 파일 전부를 입력받아 <code>.dll</code> 하나를 출력”</em> 하는 방식으로 동작한다.
+    파일별로 조각을 만들어 붙이지 않는다.
+  </p>
+  <p>
+    파일들이 서로 타입을 참조하기 때문(예: <code>GooseController</code> 가 <code>InputService</code>, <code>AudioService</code> 를 사용)에
+    타입 검사·오버로드 결정·메타데이터 생성을 하려면 전체를 한꺼번에 봐야 한다. 그래서 항상 어셈블리 단위로 처리된다.
+  </p>
+  <div class="note">
+    <strong>결론:</strong> 파일 하나만 고쳐도, 그 파일이 속한 어셈블리 전체가 다시 컴파일된다.
+    파일 단위로 못 쪼개니, 속도를 위해선 <strong>“굽는 덩어리 자체를 작게”</strong> 만드는 수밖에 없다. 그게 asmdef의 역할.
+  </div>
+
+  <h2>3. asmdef 없을 때 vs 있을 때</h2>
+
+  <h3>없을 때</h3>
+  <p>
+    <code>Assets/</code> 아래 asmdef 없는 스크립트는 전부 <code>Assembly-CSharp.dll</code> 하나로 뭉친다.
+  </p>
+  <div class="tree">Assembly-CSharp.dll
+ ├─ 내 게임 코드 (Assets/Scripts/*)
+ └─ Assets/Plugins/ithappy/Animals_FREE/Scripts/*.cs   ← asmdef 없는 플러그인</div>
+  <p>
+    → <code>GooseController.cs</code> 한 줄 수정 시 <span class="bad">내 코드 + ithappy 스크립트까지 전부 재컴파일</span>.
+  </p>
+
+  <h3>있을 때 (현재 상태)</h3>
+  <div class="tree">FantasyWorld.dll        ← Assets/Scripts/ 안의 파일만
+Assembly-CSharp.dll     ← ithappy 등 느슨한 플러그인 스크립트만 남음</div>
+  <p>
+    → <code>GooseController.cs</code> 수정 시 <span class="ok">FantasyWorld.dll 만 재컴파일</span>. ithappy는 건드리지 않음.
+  </p>
+
+  <div class="note">
+    <strong>주의:</strong> VContainer · FMOD · JoonyleGameDevKit 같은 패키지는 <em>자기 asmdef를 이미 갖고 있어</em>
+    원래부터 별도 dll이다. 내 코드를 고쳐도 걔넨 재컴파일되지 않는다. <strong>이건 내 asmdef의 효과가 아니다.</strong>
+  </div>
+
+  <h2>4. references 를 걸면 실제로 벌어지는 일</h2>
+  <p>현재 <code>FantasyWorld.asmdef</code> 의 참조 목록:</p>
+  <pre><code>{
+  "name": "FantasyWorld",
+  "references": [
+    "VContainer",
+    "Joonyle.GameDevKit",
+    "UniTask",
+    "FMODUnity",
+    "Unity.InputSystem"
+  ]
+}</code></pre>
+
+  <h3>4-1. Unity가 의존 그래프를 만든다</h3>
+  <p>프로젝트의 모든 asmdef를 스캔해 “누가 누구를 참조하는지” 그래프를 그린다.</p>
+  <div class="tree">VContainer.dll ─┐
+FMOD.dll ───────┼─►  FantasyWorld.dll   (아무도 FantasyWorld를 참조하지 않음)
+Joonyle.dll ────┘</div>
+
+  <h3>4-2. 위상 정렬 → 컴파일 순서 결정</h3>
+  <ol>
+    <li>UniTask.dll, Unity.InputSystem.dll … (남에게 의존 안 함)</li>
+    <li>VContainer.dll, FMODUnity.dll, Joonyle.GameDevKit.dll</li>
+    <li>FantasyWorld.dll ← 마지막. 위 것들이 있어야 컴파일 가능</li>
+  </ol>
+  <p>결과물은 전부 <code>Library/ScriptAssemblies/</code> 에 <code>.dll</code> 로 쌓인다.</p>
+
+  <h3>4-3. FantasyWorld.dll 컴파일 시 컴파일러 호출 (개념)</h3>
+  <pre><code>csc  Assets/Scripts/Game/GameFlow.cs
+     Assets/Scripts/Core/AudioService.cs
+     ... (21개 파일 전부)
+     -reference:Library/ScriptAssemblies/VContainer.dll
+     -reference:Library/ScriptAssemblies/FMODUnity.dll
+     -reference:Library/ScriptAssemblies/Joonyle.GameDevKit.dll
+     -reference:.../UniTask.dll
+     -reference:.../Unity.InputSystem.dll
+     -out:Library/ScriptAssemblies/FantasyWorld.dll</code></pre>
+  <p><code>references</code> 항목 하나당 <code>-reference:</code> 플래그 하나. <strong>이게 참조의 실체.</strong></p>
+
+  <h3>4-4. -reference 가 컴파일러 안에서 하는 일</h3>
+  <p>지정된 dll의 <strong>public 타입 메타데이터</strong>를 읽어 심볼 테이블에 올린다.</p>
+  <pre><code>using VContainer.Unity;                 // VContainer.dll 에 존재 → OK
+public sealed class GameFlow : IStartable   // IStartable 은 VContainer.dll → OK</code></pre>
+  <p>
+    <code>references</code> 에서 <code>VContainer</code> 를 빼면 <code>-reference</code> 가 안 붙고 →
+    <code class="bad">error CS0246: The type or namespace name 'IStartable' could not be found</code>
+  </p>
+
+  <h3>4-5. 참조는 단방향 · 순환 금지</h3>
+  <ul>
+    <li><code>FantasyWorld</code> → <code>VContainer</code> : FantasyWorld는 VContainer의 public 타입을 본다</li>
+    <li>반대로 <code>VContainer</code> 는 <code>FantasyWorld</code> 의 존재를 <strong>모른다</strong> → 내 코드가 바뀌어도 VContainer는 재컴파일 안 됨</li>
+    <li>서로 참조(순환)는 Unity가 금지</li>
+  </ul>
+
+  <h2>5. 참조에 무엇을 넣을까 — 두 가지 질문을 구분하라</h2>
+  <p>“패키지가 자기 asmdef를 갖고 있으면 참조 안 해도 된다”는 말은 <strong>절반만 맞다.</strong> 서로 다른 두 문제를 섞으면 헷갈린다.</p>
+  <table>
+    <tr><th>질문</th><th>답</th></tr>
+    <tr>
+      <td><strong>A.</strong> 패키지 X가 내 코드 수정 시 재컴파일되나?</td>
+      <td>X가 자기 asmdef를 가지면 <span class="ok">안 된다.</span> 내 <code>references</code> 와 무관.</td>
+    </tr>
+    <tr>
+      <td><strong>B.</strong> 내 코드가 X의 타입을 <code>using</code> 할 수 있나?</td>
+      <td>내 <code>references</code> 에 X를 넣어야만 <span class="ok">가능하다.</span> X가 asmdef를 갖든 말든 무관.</td>
+    </tr>
+  </table>
+
+  <h3>올바른 기준</h3>
+  <div class="card">
+    <p style="margin:0">
+      <strong>내 코드에서 <code>using</code> 하는 게 있으면 → 참조에 넣는다. 아니면 안 넣는다.</strong>
+      “asmdef를 가졌는지”는 판단 기준이 아니다.
+    </p>
+  </div>
+  <table>
+    <tr><th>패키지</th><th>내 코드에서 쓰나?</th><th>참조?</th></tr>
+    <tr><td>VContainer</td><td><code>LifetimeScope</code>, <code>[Inject]</code>, <code>IStartable</code></td><td class="ok">✅</td></tr>
+    <tr><td>Joonyle.GameDevKit</td><td><code>GameStateController&lt;T&gt;</code></td><td class="ok">✅</td></tr>
+    <tr><td>FMODUnity</td><td><code>AudioService</code> 에서 FMOD API</td><td class="ok">✅</td></tr>
+    <tr><td>Unity.InputSystem</td><td><code>InputService</code></td><td class="ok">✅</td></tr>
+    <tr><td>UniTask</td><td>나중에 async 로딩 (지금은 예약)</td><td class="ok">✅ (미리)</td></tr>
+    <tr><td>vHierarchy / vTabs</td><td>안 씀 (에디터가 알아서 동작)</td><td class="bad">❌</td></tr>
+    <tr><td>vInspector</td><td><code>[Button]</code> 등 어트리뷰트 쓸 때만</td><td>상황따라</td></tr>
+  </table>
+
+  <h3>왜 예전 방식(<code>Assets/Scripts</code> 에 그냥 넣기)에선 이게 필요 없었나</h3>
+  <p>
+    asmdef <strong>없는</strong> 코드(<code>Assembly-CSharp</code>)에는 <code>autoReferenced: true</code> 인 모든 어셈블리가
+    <strong>자동으로 참조에 들어가</strong> 있다. 그래서 아무거나 <code>using</code> 해도 됐다.
+  </p>
+  <p>
+    asmdef를 만들면 이 자동 참조가 꺼진다 → <strong>쓰는 것만 직접 나열</strong>해야 한다.
+    VContainer 등을 <code>references</code> 에 넣은 것은 그 나열 작업이다. 안 넣으면 <code>IStartable</code> 등이 <code class="bad">CS0246</code> 컴파일 에러.
+  </p>
+  <div class="note">
+    <strong>참고:</strong> <code>vHierarchy</code> 를 참조에 안 넣은 이유는 “걔가 asmdef를 가져서”가 아니라
+    <strong>“내 코드가 걔 타입을 안 써서”</strong> 다. 판단 기준을 헷갈리지 말 것.
+  </div>
+
+  <h2>6. 재컴파일이 번지는 범위</h2>
+  <p>어셈블리를 수정하면 <strong>그 어셈블리 + 그것을 참조하는 하류(downstream)</strong> 만 재컴파일된다. 참조당하는 상류는 그대로.</p>
+  <table>
+    <tr><th>수정한 파일</th><th>재컴파일되는 dll</th><th>이유</th></tr>
+    <tr><td><code>Game/GameFlow.cs</code></td><td class="ok">FantasyWorld.dll 만</td><td>FantasyWorld를 참조하는 어셈블리 없음</td></tr>
+    <tr><td>VContainer 패키지</td><td>FantasyWorld.dll (하류 전부)</td><td>FantasyWorld가 VContainer를 참조 → 상류가 바뀌면 하류로 전파</td></tr>
+    <tr><td>ithappy 플러그인 <code>.cs</code></td><td>Assembly-CSharp.dll 만</td><td>FantasyWorld와 분리돼 있음</td></tr>
+  </table>
+
+  <h2>7. 그래서 이 프로젝트에서 asmdef를 만든 이유</h2>
+  <ol>
+    <li>
+      <strong>내 게임 로직(<code>Assets/Scripts/</code>)을 <code>Assembly-CSharp.dll</code> 에서 떼어내
+      <code>FantasyWorld.dll</code> 로 격리</strong> — 느슨한 플러그인 스크립트와 서로 재컴파일을 끌고 다니지 않게.
+    </li>
+    <li>
+      <strong>나중에 내 코드를 여러 어셈블리로 쪼갤 진입점</strong> — asmdef가 하나라도 있어야 거기서 갈라진다. (진짜 목적)
+    </li>
+    <li>
+      <strong>참조 경계 강제</strong> — <code>references</code> 에 없으면 <code>using</code> 자체가 안 되므로 실수로 엉뚱한 의존이 생기는 걸 컴파일 단계에서 차단.
+    </li>
+  </ol>
+  <div class="note">
+    <strong>솔직한 평가:</strong> 지금은 스크립트가 몇 개 없어서 컴파일 속도 이득은 미미하다.
+    asmdef의 값어치는 “프로젝트가 커졌을 때 내 코드를 나누기 위한 발판”이다.
+  </div>
+
+  <h2>8. 앞으로: 코드가 늘면 이렇게 쪼갠다</h2>
+  <p><code>Assets/Scripts/</code> 안에 또 다른 asmdef를 두면 거기서부터 별도 dll로 갈라진다.</p>
+  <div class="tree">Assets/Scripts/
+  FantasyWorld.asmdef              ← Core/, Game/ 담당
+  Gameplay/
+    FantasyWorld.Gameplay.asmdef   ← 여기부터 별도 dll (FantasyWorld.Gameplay.dll)
+  UI/
+    FantasyWorld.UI.asmdef</div>
+  <p>의존 그래프 예:</p>
+  <div class="tree">VContainer.dll ─┐
+FMOD.dll ───────┼─►  Core.dll ─┬─►  Gameplay.dll
+                               └─►  UI.dll</div>
+  <p>
+    전략: <strong>자주 고치는 코드(Gameplay, UI)는 그래프의 잎(아래)에, 잘 안 바뀌는 공용 코드(Core)는 위에</strong> 둔다.
+    Core를 건드리면 하류로 다 번지므로 Core는 최대한 안정화시킨다.
+  </p>
+
+  <h2>9. 되돌리기</h2>
+  <p>
+    부담되면 <code>FantasyWorld.asmdef</code> 와 <code>.meta</code> 를 지우면 된다.
+    그러면 <code>Assets/Scripts/</code> 전체가 다시 <code>Assembly-CSharp.dll</code> 로 합쳐지고,
+    패키지들은 자동으로 보이게 된다(참조 명시 불필요). 프로젝트가 커지면 결국 다시 나누게 되므로 두는 편을 권장.
+  </p>
+
+  <footer>
+    FantasyWorld 내부 문서 · Unity 6000.3.6f1 · VContainer 1.19.0
+  </footer>
+
+</div>
+</body>
+</html>
