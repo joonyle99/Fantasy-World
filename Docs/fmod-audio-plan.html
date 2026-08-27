@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FMOD 적용 계획 — Fantasy World</title>
+<style>
+  :root {
+    --bg: #fafaf8;
+    --fg: #2a2622;
+    --muted: #6b6459;
+    --accent: #b5651d;
+    --accent-soft: #f3e4d0;
+    --border: #e5ddd0;
+    --card-bg: #ffffff;
+    --code-bg: #f1ece2;
+    --note-bg: #fdf3e3;
+    --note-border: #e8c98a;
+    --t1: #b5651d;
+    --t2: #3f7d5a;
+    --t3: #6b6459;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1a17;
+      --fg: #e8e3da;
+      --muted: #a39a8c;
+      --accent: #e0954a;
+      --accent-soft: #3a2c1c;
+      --border: #3a352d;
+      --card-bg: #24211d;
+      --code-bg: #2a2621;
+      --note-bg: #2e2517;
+      --note-border: #6b5228;
+      --t1: #e0954a;
+      --t2: #6fae87;
+      --t3: #a39a8c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+    line-height: 1.65;
+    padding: 48px 20px 96px;
+  }
+  .page { max-width: 820px; margin: 0 auto; }
+  h1 { font-size: 1.95rem; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .subtitle { color: var(--muted); font-size: 1rem; margin: 0 0 40px; }
+  h2 {
+    font-size: 1.32rem;
+    margin: 48px 0 14px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--accent-soft);
+  }
+  h3 { font-size: 1.06rem; margin: 28px 0 10px; }
+  h4 { font-size: 0.98rem; margin: 20px 0 8px; color: var(--muted); }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 0 0 14px; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: "Cascadia Code", "Consolas", "D2Coding", monospace;
+    font-size: 0.87em;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0 0 18px;
+  }
+  pre code { background: none; padding: 0; font-size: 0.85rem; line-height: 1.55; }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 0 0 18px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid var(--note-border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 0 0 18px;
+  }
+  .note strong { color: var(--accent); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 18px;
+    font-size: 0.9rem;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--accent-soft); font-weight: 600; }
+  .tree {
+    font-family: "Cascadia Code", "Consolas", "D2Coding", monospace;
+    font-size: 0.84rem;
+    white-space: pre;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0 0 18px;
+  }
+  .tier {
+    display: inline-block;
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 999px;
+    color: #fff;
+    vertical-align: middle;
+    margin-left: 8px;
+  }
+  .tier.one { background: var(--t1); }
+  .tier.two { background: var(--t2); }
+  .tier.three { background: var(--t3); }
+  .tag {
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .lead {
+    font-size: 1.05rem;
+    border-left: 3px solid var(--accent);
+    padding-left: 16px;
+    color: var(--fg);
+    margin: 0 0 22px;
+  }
+  .checklist { list-style: none; padding-left: 4px; }
+  .checklist li { margin-bottom: 8px; }
+  .checklist li::before { content: "☐ "; color: var(--accent); font-weight: 700; }
+  footer {
+    margin-top: 60px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <span class="tag">Fantasy World · 오디오 설계 노트</span>
+  <h1>FMOD 적용 계획</h1>
+  <p class="subtitle">
+    거위 게임(Untitled Goose Game 류)에 FMOD Studio 를 어떻게 쓸지 —
+    기능 우선순위, 핵심 개념, 낮/밤 · 날씨 · 공간감 설계.
+  </p>
+
+  <p class="lead">
+    FMOD 의 핵심은 "소리를 실행"이 아니라 <strong>"게임 상태를 파라미터로 알려주면 사운드가 알아서 반응"</strong> 이다.
+    코드는 파라미터 값만 던지고, 반응(믹싱·전환·레이어)은 전부 Studio 에서 저작한다.
+  </p>
+
+  <h2>1. 현재 상태</h2>
+  <p>지금 <code>AudioService</code> 가 제공하는 것:</p>
+  <ul>
+    <li><code>PlayOneShot(EventReference, Vector3)</code> — 일회성 SFX (위치 기반)</li>
+    <li><code>PlayMusic / StopMusic / SetMusicParameter</code> — 음악 하나 유지</li>
+    <li><code>SetGlobalParameter(name, value)</code> — 전역 파라미터</li>
+  </ul>
+  <p>
+    "위치가 잡히는 AudioSource" 수준. FMOD 뱅크가 아직 없어서 실제 소리는 안 남
+    (<code>EventReference.IsNull</code> 가드로 안전하게 무시).
+  </p>
+
+  <h2>2. 아키텍처 연결</h2>
+  <div class="tree">FantasyWorld.Core
+  AudioService          재생 래퍼. FMOD API 를 감싸기만 함. "무엇을" 은 모름.
+
+FantasyWorld.World
+  GameSounds (SO)       게임플레이 사운드 EventReference 카탈로그 (Honk / Grab / Drop / ...)
+  GameplayAudioDirector GameplayEventBus 구독 → 이벤트에 맞는 GameSounds 항목을 AudioService 로 재생
+
+  EnvironmentService    (예정) 게임 시간·날씨 관리 → AudioService.SetGlobalParameter 로 반영
+                                                   + 조명 / 스카이박스도 같이</div>
+  <div class="note">
+    <strong>원칙:</strong> 무코드로 되는 건 코드에 안 넣는다.
+    <code>StudioListener</code>(카메라), <code>StudioEventEmitter</code>(앰비언스 루프),
+    <code>StudioParameterTrigger</code>(콜라이더 → 파라미터), <code>StudioBankLoader</code>(구역 뱅크)
+    는 씬 컴포넌트로 처리.
+  </div>
+
+  <h2>3. 기능 우선순위</h2>
+
+  <h3>Tier 1 <span class="tier one">반드시</span></h3>
+  <p>없으면 FMOD 를 쓰는 의미가 없는 것들.</p>
+
+  <h4>3-1. FMOD Studio 프로젝트 + 뱅크 파이프라인 <span style="color:var(--muted)">(전제조건)</span></h4>
+  <p>
+    <code>.fspro</code> 생성 → 이벤트 저작 → 뱅크 빌드 → <code>Assets/StreamingAssets</code> →
+    FMODStudioSettings 에 뱅크 등록. 이게 없으면 아래 전부 못 한다.
+    (<code>.gitignore</code> 에 뱅크 파일 제외 규칙 이미 있음)
+  </p>
+
+  <h4>3-2. Parameters (로컬 + 글로벌) — 가장 중요</h4>
+  <p>"이벤트를 실행"이 아니라 "이벤트한테 상황을 알려주면 알아서 반응".</p>
+  <table>
+    <tr><th>파라미터</th><th>종류</th><th>우리 게임</th></tr>
+    <tr><td><code>Chase</code> (0~1)</td><td>Global</td><td>NPC Alerted → 1, 진정 → 0. 음악 긴장도 · 앰비언스 덕킹</td></tr>
+    <tr><td><code>Mischief</code></td><td>Global</td><td>목표 진행도. 음악 레이어 페이드인</td></tr>
+    <tr><td><code>TimeOfDay</code> (0~24)</td><td>Global</td><td>낮/밤 앰비언스 · 음악 톤</td></tr>
+    <tr><td><code>Weather</code> (0~1)</td><td>Global</td><td>비 강도 → Raining 스냅샷 블렌드</td></tr>
+    <tr><td><code>Surface</code> (label)</td><td>Local</td><td>발소리 이벤트 하나가 grass / gravel / wood / water 자동 선택</td></tr>
+    <tr><td><code>Impact</code> (0~1)</td><td>Local</td><td>물건 떨어질 때 세기별 소리</td></tr>
+  </table>
+  <p>코드는 이미 준비됨. Studio 에서 파라미터 만들고 타임라인에 조건·자동화 걸면 끝.</p>
+
+  <h4>3-3. Buses + VCA (믹서 구조)</h4>
+  <div class="tree">bus:/
+ ├─ SFX       (VCA: SFX)
+ ├─ Music     (VCA: Music)
+ ├─ Ambience  (VCA: Ambience)
+ └─ Reverb    (send 전용)</div>
+  <ul>
+    <li>설정 메뉴 볼륨 슬라이더 → VCA 볼륨 (<code>SettingsService</code> 가 건드림)</li>
+    <li>버스 단위 일시정지 / 페이드 / 덕킹</li>
+  </ul>
+
+  <h4>3-4. 3D 이벤트 + StudioListener</h4>
+  <ul>
+    <li>Studio 에서 이벤트를 <strong>3D 로 저작</strong> (min/max distance, attenuation curve)</li>
+    <li>Unity: 카메라(또는 구스)에 <code>StudioListener</code> 컴포넌트</li>
+    <li>→ 정원사 발소리가 다가올수록 커지고 좌우로 팬됨. <code>PlayOneShot(event, position)</code> 은 이미 위치를 넘기고 있음</li>
+  </ul>
+
+  <h3>Tier 2 <span class="tier two">강력 추천</span></h3>
+  <p>프로처럼 들리게 하는 것들.</p>
+  <table>
+    <tr><th>기능</th><th>우리 게임에서</th><th>Studio</th></tr>
+    <tr>
+      <td>적응형 음악<br>(transition / sustain point / tempo marker)</td>
+      <td>UGG 의 영혼. 음악 이벤트 하나를 계속 재생하며 <code>Intensity</code> 로 구간 전환, 또는 스템 레이어를 파라미터로 페이드</td>
+      <td>Transition timeline, sustain point, 박자 quantize. 코드는 <code>setParameterByName</code> 한 줄</td>
+    </tr>
+    <tr>
+      <td>Snapshots<br>(믹서 상태 블렌딩)</td>
+      <td><code>Chased</code> · <code>Paused</code> · <code>Underwater</code> · <code>Indoors</code> · <code>Raining</code></td>
+      <td>겹쳐 켜는 믹서 프리셋. 파라미터에 intensity 연동</td>
+    </tr>
+    <tr>
+      <td>Multi / Scatterer Instrument</td>
+      <td>발소리: 샘플 5개 랜덤 + 피치 ±2%. 새소리: Scatterer 가 3D 공간에 랜덤 위치·간격으로 뿌림</td>
+      <td>저작만. 코드 동일</td>
+    </tr>
+    <tr>
+      <td>Ambient Zones (<code>StudioEventEmitter</code>)</td>
+      <td>분수 · 라디오 · 구역별 배경 앰비언스. 루프/위치 있는 소리는 <code>PlayOneShot</code> 이 아님</td>
+      <td>씬에 emitter 배치, 트리거 콜라이더로 자동 start/stop</td>
+    </tr>
+  </table>
+
+  <h3>Tier 3 <span class="tier three">여유되면</span></h3>
+  <table>
+    <tr><th>기능</th><th>설명</th></tr>
+    <tr><td>Sidechain 덕킹</td><td>honk 할 때 음악·앰비언스가 살짝 죽었다 복귀. NPC 고함 시 앰비언스 덕킹</td></tr>
+    <tr><td>Occlusion / Reverb send</td><td>벽 뒤 소리 → 레이캐스트로 LP 필터. 구역별 리버브 프리셋 (실내 울림 / 야외 드라이)</td></tr>
+    <tr><td>Per-area 뱅크 로드 (<code>StudioBankLoader</code>)</td><td>Master 뱅크 + 구역 뱅크. <code>AreaLifetimeScope</code> 에서 진입 시 LoadBank, 나갈 때 Unload. 음악은 streaming</td></tr>
+    <tr><td>Live Update</td><td>Studio ↔ 실행 중인 게임 연결해서 믹스 실시간 조정. 개발 편의용</td></tr>
+  </table>
+
+  <h2>4. 핵심 개념 — 덕킹</h2>
+  <p>
+    <strong>덕킹</strong> = 한 소리가 나는 동안 다른 소리를 자동으로 살짝 죽였다가, 끝나면 되돌리는 것.
+    (라디오 DJ 말할 때 음악 작아지는 것)
+  </p>
+  <p>
+    <strong>앰비언스 덕킹</strong> = honk · 물건 깨짐 · 정원사 고함 같은 중요한 SFX 가 날 때
+    배경 앰비언스(새소리·바람·웅성거림)를 순간 <code>-4~6dB</code> → 중요한 소리가 앰비언스를 "뚫고" 들림. 끝나면 스르륵 복귀.
+  </p>
+  <div class="card">
+    <strong>Studio:</strong> <code>bus:/Ambience</code> 에 Compressor, <strong>sidechain input</strong> 을
+    <code>bus:/SFX</code>(또는 특정 이벤트)로 연결. SFX 레벨이 커질수록 앰비언스가 눌림.<br>
+    <strong>코드:</strong> 없음. 저작만.
+  </div>
+
+  <h2>5. 낮/밤 시스템 + 환경별 사운드</h2>
+  <p>핵심 패턴: <strong>글로벌 파라미터 하나 (<code>TimeOfDay</code>, 0~24)</strong>. 시간 시스템이 값을 밀어넣고, 반응은 전부 Studio.</p>
+  <pre><code>// EnvironmentService (새 Core 서비스) 가 매분 / 변화 시
+_audioService.SetGlobalParameter("TimeOfDay", currentHour);
+// 이 서비스가 조명 · 스카이박스도 같이 갱신</code></pre>
+  <p>Studio 에서 <code>TimeOfDay</code> 를 <strong>타임라인 축</strong>으로 쓰는 "Village Ambience" 이벤트:</p>
+  <table>
+    <tr><th>시간</th><th>레이어</th></tr>
+    <tr><td>0 ~ 5</td><td>귀뚜라미, 부엉이, 정적</td></tr>
+    <tr><td>6 ~ 9</td><td>새 지저귐 폭발, 닭, 활동 시작</td></tr>
+    <tr><td>10 ~ 17</td><td>낮 소음, 멀리 개</td></tr>
+    <tr><td>18 ~ 21</td><td>저녁, 새 잦아듦</td></tr>
+    <tr><td>22 ~ 24</td><td>밤으로 크로스페이드</td></tr>
+  </table>
+  <p>
+    각 레이어(instrument)가 파라미터 값에 따라 자동화 커브로 페이드 인/아웃.
+    음악도 밤엔 잔잔한 스템으로, 발소리 리버브도 밤엔 더 (거리가 조용하니).
+  </p>
+  <div class="note">
+    <strong>환경 변화 = 파라미터 1개.</strong> <code>StudioGlobalParameterTrigger</code> 는 콜라이더 기반이라
+    시간엔 안 맞음 → 코드로 세팅한다.
+  </div>
+
+  <h2>6. 공간감 + "비 올 때 자연스럽게 묻힘"</h2>
+  <p>"묻힘"을 만드는 층위가 여러 개다. 조합해서 쓴다.</p>
+
+  <h3>(a) Snapshot "Raining" — 가장 통제 잘 되는 방법</h3>
+  <p>믹서 상태를 정의하고, 비 강도(<code>Weather</code> 파라미터)에 블렌드 비율을 연동:</p>
+  <div class="tree">Snapshot "Raining"  (intensity ← Weather 파라미터)
+  bus:/Ambience.Rain   페이드인 (+8dB)
+  bus:/SFX             -3dB
+  bus:/Music           -2dB + 하이컷 살짝 (비 오면 답답한 느낌)
+  Reverb send          +   (젖은 공간감)
+  Master               LP 필터 살짝 (전체 muffle)</div>
+  <p>갑자기 쏟아지면 스냅샷이 0.5초 페이드인 → 다른 소리들이 스르륵 뒤로 물러남.</p>
+
+  <h3>(b) Sidechain — 비가 다른 걸 눌러줌</h3>
+  <p>
+    <code>bus:/SFX</code> · <code>bus:/Music</code> 에 Compressor, sidechain 을 Rain 이벤트에서.
+    비가 셀수록 나머지가 눌림. (a)랑 같이 쓰면 더 유기적.
+  </p>
+
+  <h3>(c) 주파수 마스킹 — 물리적으로 그냥 됨</h3>
+  <p>
+    비는 광대역 노이즈라 다른 소리의 중고역을 자연히 가린다. 억지로 안 해도 됨.
+    <strong>단, honk · 정원사 목소리는 묻히면 안 됨</strong> → 얘넨 sidechain 에서 제외하거나,
+    재생될 때 <em>역방향으로 Rain 을 짧게 덕킹</em> ("비 오는데 honk 는 뚫고 나옴").
+  </p>
+
+  <h3>(d) 공간감 기반 (날씨와 별개로 항상)</h3>
+  <table>
+    <tr><th>기법</th><th>Studio</th><th>Unity / 코드</th></tr>
+    <tr><td>3D 이벤트 + StudioListener</td><td>3D 저작, min/max distance</td><td>카메라에 <code>StudioListener</code></td></tr>
+    <tr><td>구역별 리버브</td><td>Reverb 스냅샷 (야외 드라이 / 헛간 우드 / 골목 반사)</td><td><code>StudioParameterTrigger</code> (콜라이더) 또는 스코프에서 스냅샷</td></tr>
+    <tr><td>오클루전 (벽 뒤 소리 답답)</td><td><code>Occlusion</code> 로컬 파라미터 → LP 필터 자동화</td><td>레이캐스트로 막혔으면 파라미터 세팅 (<code>Npc.CanSeeGoose</code> 와 유사)</td></tr>
+  </table>
+
+  <h2>7. 착수 순서</h2>
+  <ol class="checklist">
+    <li>FMOD Studio 프로젝트 + 뱅크 빌드 파이프라인</li>
+    <li><code>bus:/</code> 아래 SFX / Music / Ambience / Reverb(send)</li>
+    <li><code>Chase</code> 글로벌 파라미터 → <code>GameplayAudioDirector</code> 가 NPC Alerted 에 물림
+        <br><span style="color:var(--muted)">"추격당하면 음악이 바뀐다" 를 최소 구현으로 먼저 경험</span></li>
+    <li>발소리를 <code>Surface</code> 파라미터 + Multi instrument 로</li>
+    <li>적응형 음악 본격 저작 (transition / sustain / tempo)</li>
+    <li>스냅샷 (Paused 부터 → Chased → Raining)</li>
+    <li><code>EnvironmentService</code> 만들고 <code>TimeOfDay</code> / <code>Weather</code> 파라미터 연동</li>
+    <li>구역별 Reverb 스냅샷 + per-area 뱅크 로드</li>
+  </ol>
+  <div class="note">
+    3번까지만 해도 "아 이래서 FMOD 를 쓰는구나" 가 된다.
+  </div>
+
+  <h2>8. AudioService 확장 방향</h2>
+  <pre><code>// 지금
+PlayOneShot / PlayMusic / StopMusic / SetMusicParameter / SetGlobalParameter
+
+// 추가될 것
+SetBusVolume(string bus, float v)      // 설정 메뉴 → VCA / Bus
+LoadBankAsync / UnloadBank             // 구역별
+SetPaused(bool)                        // Paused 스냅샷 or PauseAllEvents
+SetSnapshot(string name, bool on)      // Raining / Indoors / ...
+// 리스너 전환 등</code></pre>
+  <p>
+    최종적으로 게임 코드가 하는 일은 이게 거의 전부:
+  </p>
+  <pre><code>_audioService.SetGlobalParameter("TimeOfDay", hour);
+_audioService.SetGlobalParameter("Weather", rainIntensity01);
+_audioService.SetGlobalParameter("Chase", chaseLevel);</code></pre>
+  <p>나머지 90% 는 Studio 저작. FMOD 의 설계 철학이 <em>"게임은 상태만 알려주고, 사운드 디자이너가 반응을 만든다"</em>.</p>
+
+  <footer>
+    Fantasy World 내부 문서 · FMOD for Unity · 대화 정리 (2026-08-28)
+  </footer>
+
+</div>
+</body>
+</html>
