@@ -6,9 +6,10 @@ using UnityEngine;
 namespace FantasyWorld.Core
 {
     /// <summary>
-    /// FMOD 래퍼. 게임플레이 코드는 FMOD API 를 직접 부르지 않고 이 서비스만 의존한다.
-    /// 이벤트 참조(EventReference)는 호출자(MonoBehaviour 등)가 [SerializeField] 로 들고 넘긴다.
-    /// 참조가 비어 있으면 조용히 무시하므로, FMOD 뱅크가 아직 없어도 안전하다.
+    /// FMOD 재생 래퍼. 게임플레이 코드는 FMOD API 를 직접 부르지 않고 이 서비스만 의존한다.
+    /// 무엇을 재생할지(EventReference)는 호출자가 넘긴다 — 게임플레이 사운드는
+    /// GameSounds(SO) 에 모아두고 GameplayAudioDirector 가 라우팅한다.
+    /// 넘어온 참조가 비어 있으면 조용히 무시하므로, FMOD 뱅크가 아직 없어도 안전하다.
     /// </summary>
     public sealed class AudioService : IDisposable
     {
