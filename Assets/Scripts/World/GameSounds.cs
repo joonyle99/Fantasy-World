@@ -10,6 +10,10 @@ namespace FantasyWorld.World
     [CreateAssetMenu(menuName = "FantasyWorld/Game Sounds", fileName = "GameSounds")]
     public sealed class GameSounds : ScriptableObject
     {
+        [Header("Music")]
+        [Tooltip("전역 음악. 구역이 바뀌어도 유지되고, 파라미터(Chase 등)로만 변한다. 구역별 앰비언스는 각 Area 씬의 StudioEventEmitter 로 처리.")]
+        public EventReference Music;
+
         [Header("Goose")]
         public EventReference Honk;
 

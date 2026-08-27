@@ -14,6 +14,7 @@ namespace FantasyWorld.Core
     public sealed class AudioService : IDisposable
     {
         private EventInstance _music;
+        private EventReference _currentMusic;
         private bool _musicPlaying;
 
         // ============== 일회성 SFX ==============
@@ -52,10 +53,15 @@ namespace FantasyWorld.Core
             if (music.IsNull)
                 return;
 
+            // 이미 같은 곡이면 재시작하지 않는다 (구역 로드 때마다 처음으로 튀는 것 방지)
+            if (_musicPlaying && _currentMusic.Guid.Equals(music.Guid))
+                return;
+
             StopMusic(allowFadeOut: false);
 
             _music = RuntimeManager.CreateInstance(music);
             _music.start();
+            _currentMusic = music;
             _musicPlaying = true;
         }
 
