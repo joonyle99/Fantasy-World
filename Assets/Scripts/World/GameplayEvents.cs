@@ -37,4 +37,24 @@ namespace FantasyWorld.World
             Position = position;
         }
     }
+
+    public readonly struct ObjectiveCompleted
+    {
+        public readonly string Description;
+
+        public ObjectiveCompleted(string description)
+        {
+            Description = description;
+        }
+    }
+
+    public readonly struct AreaCleared
+    {
+        public readonly string AreaName;
+
+        public AreaCleared(string areaName)
+        {
+            AreaName = areaName;
+        }
+    }
 }

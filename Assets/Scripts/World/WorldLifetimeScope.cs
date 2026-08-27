@@ -36,10 +36,10 @@ namespace FantasyWorld.World
             // 상태만 들고 있는 순수 시스템 — 요청 시 생성
             builder.Register<GameplayEventBus>(Lifetime.Singleton);
             builder.Register<NpcRegistry>(Lifetime.Singleton);
+            builder.Register<ObjectiveManager>(Lifetime.Singleton);
 
-            // 매 프레임/시작 콜백이 필요한 시스템 — 빌드 시 즉시 생성
+            // 매 프레임 콜백이 필요한 시스템 — 빌드 시 즉시 생성
             builder.RegisterEntryPoint<InteractionSystem>().AsSelf();
-            builder.RegisterEntryPoint<ObjectiveManager>().AsSelf();
 
             // World 세션 흐름의 주체
             builder.RegisterEntryPoint<WorldFlow>();

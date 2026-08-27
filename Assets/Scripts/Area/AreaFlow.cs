@@ -1,16 +1,21 @@
+using System;
+using UnityEngine;
 using VContainer.Unity;
 using FantasyWorld.World;
 
 namespace FantasyWorld.Area
 {
     /// <summary>
-    /// 구역 진입점. 구역 목표 세트를 ObjectiveManager 에 등록하고 NPC 를 NpcRegistry 에 연결한다.
+    /// 구역 진입점. 구역 목표 세트를 ObjectiveManager 에 등록하고,
+    /// 씬의 ObjectiveZone 들을 목표 판정에 연결한다.
     /// </summary>
-    public sealed class AreaFlow : IStartable
+    public sealed class AreaFlow : IStartable, IDisposable
     {
         private readonly AreaObjectiveSet _objectiveSet;
         private readonly ObjectiveManager _objectiveManager;
         private readonly NpcRegistry _npcRegistry;
+
+        private ObjectiveZone[] _zones = Array.Empty<ObjectiveZone>();
 
         public AreaFlow(AreaObjectiveSet objectiveSet, ObjectiveManager objectiveManager, NpcRegistry npcRegistry)
         {
@@ -21,7 +26,27 @@ namespace FantasyWorld.Area
 
         void IStartable.Start()
         {
-            // TODO: 목표 세트 등록, NPC 등록
+            _objectiveManager.SetActiveArea(_objectiveSet);
+
+            _zones = UnityEngine.Object.FindObjectsByType<ObjectiveZone>(FindObjectsSortMode.None);
+            foreach (var zone in _zones)
+                zone.ConditionMet += OnZoneConditionMet;
+
+            // TODO: NPC 를 NpcRegistry 에 등록
+        }
+
+        public void Dispose()
+        {
+            foreach (var zone in _zones)
+            {
+                if (zone != null)
+                    zone.ConditionMet -= OnZoneConditionMet;
+            }
+        }
+
+        private void OnZoneConditionMet(string completionKey)
+        {
+            _objectiveManager.NotifyCondition(completionKey);
         }
     }
 }

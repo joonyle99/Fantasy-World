@@ -1,6 +1,7 @@
 using VContainer;
 using UnityEngine;
 using VContainer.Unity;
+using FantasyWorld.World;
 
 // ============================================================
 //  3계층 스코프 — 2계층에서 추가되는 개념

@@ -12,3 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e0a0fd7a3020654cab9b2f9104fd13e, type: 3}
   m_Name: Garden_Objectives
   m_EditorClassIdentifier: FantasyWorld::FantasyWorld.Area.AreaObjectiveSet
+  _areaName: Garden
+  _objectives:
+  - _description: "\uC0AC\uACFC\uB97C \uBC14\uAD6C\uB2C8\uC5D0 \uB123\uAE30"
+    _completionKey: apple_in_basket
+    _optional: 0
+  - _description: "\uACF5\uC744 \uD638\uC218\uC5D0 \uBE60\uB728\uB9AC\uAE30"
+    _completionKey: ball_in_lake
+    _optional: 1
