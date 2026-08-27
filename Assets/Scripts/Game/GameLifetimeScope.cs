@@ -1,6 +1,8 @@
 using VContainer;
+using UnityEngine;
 using VContainer.Unity;
 using FantasyWorld.Core;
+using UnityEngine.InputSystem;
 
 // ============================================================
 //  VContainer 요약 — 이 파일에서 쓰는 개념 위주
@@ -84,6 +86,8 @@ namespace FantasyWorld.Game
     /// </summary>
     public sealed class GameLifetimeScope : LifetimeScope
     {
+        [SerializeField] private InputActionAsset _inputActions;
+
         protected override void Awake()
         {
             base.Awake();
@@ -99,6 +103,9 @@ namespace FantasyWorld.Game
             builder.Register<SettingsService>(Lifetime.Singleton);
             builder.Register<AudioService>(Lifetime.Singleton);
             builder.Register<SceneLoader>(Lifetime.Singleton);
+
+            // 인스펙터에서 꽂은 Input Actions 자산을 그대로 주입 대상으로 등록
+            builder.RegisterInstance(_inputActions);
 
             // Input System 활성/해제 타이밍을 컨테이너 생명주기에 맞춘다
             builder.RegisterEntryPoint<InputService>().AsSelf();

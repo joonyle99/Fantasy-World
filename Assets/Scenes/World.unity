@@ -224,6 +224,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d02d707018dc0994db04bc42850f0032, type: 3}
   m_Name: 
   m_EditorClassIdentifier: FantasyWorld::FantasyWorld.World.CameraDirector
+  _offset: {x: 0, y: 4, z: -7}
+  _followSmoothTime: 0.2
+  _lookHeight: 1
 --- !u!1 &786948284
 GameObject:
   m_ObjectHideFlags: 0
@@ -332,7 +335,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 5, y: 1, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -464,6 +467,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 202c24e3cb0e723498f1fe7024486086, type: 3}
   m_Name: 
   m_EditorClassIdentifier: FantasyWorld::FantasyWorld.World.GooseController
+  _moveSpeed: 4
+  _turnSpeed: 720
+  _gravity: -20
+  _stateParam: State
 --- !u!1 &2075338766
 GameObject:
   m_ObjectHideFlags: 0
