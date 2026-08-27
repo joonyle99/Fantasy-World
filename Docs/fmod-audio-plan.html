@@ -346,7 +346,7 @@ _audioService.SetGlobalParameter("TimeOfDay", currentHour);
   <h3>(d) 공간감 기반 (날씨와 별개로 항상)</h3>
   <table>
     <tr><th>기법</th><th>Studio</th><th>Unity / 코드</th></tr>
-    <tr><td>3D 이벤트 + StudioListener</td><td>3D 저작, min/max distance</td><td>카메라에 <code>StudioListener</code></td></tr>
+    <tr><td>3D 이벤트 + StudioListener</td><td>3D 저작, min/max distance, Doppler</td><td>카메라에 <code>StudioListener</code> (3D · pan · Doppler 자동)</td></tr>
     <tr><td>구역별 리버브</td><td>Reverb 스냅샷 (야외 드라이 / 헛간 우드 / 골목 반사)</td><td><code>StudioParameterTrigger</code> (콜라이더) 또는 스코프에서 스냅샷</td></tr>
     <tr><td>오클루전 (벽 뒤 소리 답답)</td><td><code>Occlusion</code> 로컬 파라미터 → LP 필터 자동화</td><td>레이캐스트로 막혔으면 파라미터 세팅 (<code>Npc.CanSeeGoose</code> 와 유사)</td></tr>
   </table>
