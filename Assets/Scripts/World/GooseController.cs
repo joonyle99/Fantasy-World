@@ -11,6 +11,9 @@ namespace FantasyWorld.World
     [RequireComponent(typeof(CharacterController))]
     public sealed class GooseController : MonoBehaviour
     {
+        // 스폰 시 아래에 지면이 있는지 확인하는 레이 길이
+        private const float FLOOR_PROBE_DISTANCE = 5f;
+
         [Header("Move")]
         [SerializeField] private float _moveSpeed = 4f;
         [SerializeField] private float _turnSpeed = 720f;
@@ -32,6 +35,7 @@ namespace FantasyWorld.World
         private Animator _animator;
         private Transform _cameraTransform;
         private float _verticalVelocity;
+        private bool _floorReady;
 
         [Inject]
         public void Construct(InputService inputService, GameplayEventBus eventBus)
@@ -64,6 +68,15 @@ namespace FantasyWorld.World
 
         private void Update()
         {
+            // 구역 씬이 로드되기 전에는 스폰 지점에서 대기한다 (허공 낙하 방지).
+            // 아래에 지면이 생기는 순간 정상 이동으로 전환한다.
+            if (!_floorReady)
+            {
+                if (Physics.Raycast(transform.position + 0.1f * Vector3.up, Vector3.down, FLOOR_PROBE_DISTANCE))
+                    _floorReady = true;
+                return;
+            }
+
             var direction = ResolveMoveDirection(_inputService.MoveInput);
 
             RotateTowards(direction);
