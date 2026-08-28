@@ -6,16 +6,16 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Title.unity
+    path: Assets/Scenes/Single - Title, World/Title.unity
     guid: daf7468223e11124c9741b0ba01c3c7c
   - enabled: 1
-    path: Assets/Scenes/World.unity
+    path: Assets/Scenes/Single - Title, World/World.unity
     guid: 18b9400a32798a544894ed5198d5ce9c
   - enabled: 1
-    path: Assets/Scenes/Areas/Area_Garden.unity
+    path: Assets/Scenes/Additive - Areas/Area_Garden.unity
     guid: bbc1892940710ac44bbf5c6efe471e39
   - enabled: 1
-    path: Assets/Scenes/Areas/Area_HighStreet.unity
+    path: Assets/Scenes/Additive - Areas/Area_HighStreet.unity
     guid: 52b5e50dec7e5db4ba8d0a7dc0242ccb
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
