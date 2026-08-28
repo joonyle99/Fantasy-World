@@ -140,6 +140,7 @@ MonoBehaviour:
         - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-1617245118-0
         - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-772670266-0
         - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-8717581116376562998-0
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-2122461029262032403-138472267
         values:
         - colorIndex: 2
           iconNameOrGuid: Settings Icon
@@ -191,6 +192,10 @@ MonoBehaviour:
           isColorRecursive: 0
         - colorIndex: 0
           iconNameOrGuid: StandaloneInputModule Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: AvatarMask On Icon
           isIconRecursive: 0
           isColorRecursive: 0
     - goDatas_byGlobalId:
