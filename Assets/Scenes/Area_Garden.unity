@@ -546,7 +546,7 @@ GameObject:
   - component: {fileID: 1129033133}
   - component: {fileID: 1129033134}
   m_Layer: 0
-  m_Name: AreaBoundary
+  m_Name: AreaBoundary_ToHighStreet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -561,7 +561,7 @@ Transform:
   m_GameObject: {fileID: 1129033131}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -579,6 +579,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a51056d4619e2a40b7c478d27e9c613, type: 3}
   m_Name: 
   m_EditorClassIdentifier: FantasyWorld::FantasyWorld.Area.AreaBoundary
+  _nextAreaScene: Area_HighStreet
+  _requiresClear: 1
 --- !u!65 &1129033134
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -598,7 +600,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 10, y: 3, z: 2}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1261308605
 GameObject:
