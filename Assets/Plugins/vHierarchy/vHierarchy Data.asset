@@ -15,7 +15,207 @@ MonoBehaviour:
   sceneDatas_byGuid:
     keys:
     - 18b9400a32798a544894ed5198d5ce9c
+    - 0cbcfc8f7c293164082121b3d9e03cb4
+    - daf7468223e11124c9741b0ba01c3c7c
+    - bbc1892940710ac44bbf5c6efe471e39
+    - 52b5e50dec7e5db4ba8d0a7dc0242ccb
+    - 901f00eb094c081458250476dea2d4e4
     values:
+    - goDatas_byGlobalId:
+        keys:
+        - globalObjectIdString: GlobalObjectId_V1-2-18b9400a32798a544894ed5198d5ce9c-995258064-0
+        - globalObjectIdString: GlobalObjectId_V1-2-18b9400a32798a544894ed5198d5ce9c-1668207211-0
+        - globalObjectIdString: GlobalObjectId_V1-2-18b9400a32798a544894ed5198d5ce9c-281063426-0
+        - globalObjectIdString: GlobalObjectId_V1-2-18b9400a32798a544894ed5198d5ce9c-1632286818-0
+        - globalObjectIdString: GlobalObjectId_V1-2-18b9400a32798a544894ed5198d5ce9c-2075338766-0
+        - globalObjectIdString: GlobalObjectId_V1-2-18b9400a32798a544894ed5198d5ce9c-1114164345-0
+        - globalObjectIdString: GlobalObjectId_V1-2-18b9400a32798a544894ed5198d5ce9c-5279811246306103102-931311643
+        - globalObjectIdString: GlobalObjectId_V1-2-18b9400a32798a544894ed5198d5ce9c-786948284-0
+        values:
+        - colorIndex: 2
+          iconNameOrGuid: Settings Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: EventSystem Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: Camera Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: Canvas Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: DirectionalLight Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: Canvas Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: AvatarMask On Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: Terrain Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+    - goDatas_byGlobalId:
+        keys:
+        - globalObjectIdString: GlobalObjectId_V1-2-0cbcfc8f7c293164082121b3d9e03cb4-77392615-0
+        values:
+        - colorIndex: 2
+          iconNameOrGuid: Settings Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+    - goDatas_byGlobalId:
+        keys:
+        - globalObjectIdString: GlobalObjectId_V1-2-daf7468223e11124c9741b0ba01c3c7c-136320486-0
+        - globalObjectIdString: GlobalObjectId_V1-2-daf7468223e11124c9741b0ba01c3c7c-1255892120-0
+        - globalObjectIdString: GlobalObjectId_V1-2-daf7468223e11124c9741b0ba01c3c7c-1464935738-0
+        - globalObjectIdString: GlobalObjectId_V1-2-daf7468223e11124c9741b0ba01c3c7c-2032671274-0
+        - globalObjectIdString: GlobalObjectId_V1-2-daf7468223e11124c9741b0ba01c3c7c-2104808247-0
+        - globalObjectIdString: GlobalObjectId_V1-2-daf7468223e11124c9741b0ba01c3c7c-2037362932-0
+        - globalObjectIdString: GlobalObjectId_V1-2-daf7468223e11124c9741b0ba01c3c7c-1270528469813701077-0
+        - globalObjectIdString: GlobalObjectId_V1-2-daf7468223e11124c9741b0ba01c3c7c-173151357-0
+        - globalObjectIdString: GlobalObjectId_V1-2-daf7468223e11124c9741b0ba01c3c7c-1974781871-0
+        - globalObjectIdString: GlobalObjectId_V1-2-daf7468223e11124c9741b0ba01c3c7c-755263315-0
+        values:
+        - colorIndex: 2
+          iconNameOrGuid: Settings Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 2
+          iconNameOrGuid: 
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 6
+          iconNameOrGuid: 
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 5
+          iconNameOrGuid: 
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 3
+          iconNameOrGuid: 
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 8
+          iconNameOrGuid: 
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 2
+          iconNameOrGuid: 
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: Camera Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: Canvas Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: EventSystem Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+    - goDatas_byGlobalId:
+        keys:
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-920775894-0
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-2791096150755076840-1708923008
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-1434051355-0
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-383067386-0
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-741792818-0
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-899835028-0
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-711941063-0
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-1110281342-0
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-1129033131-0
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-1261308605-0
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-1617245118-0
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-772670266-0
+        - globalObjectIdString: GlobalObjectId_V1-2-bbc1892940710ac44bbf5c6efe471e39-8717581116376562998-0
+        values:
+        - colorIndex: 2
+          iconNameOrGuid: Settings Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: Terrain Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: AudioSource Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: AvatarMask On Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: Settings Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: BoxCollider Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: BoxCollider Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: BoxCollider Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: BoxCollider Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: PreMatCube
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: PreMatCube
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: StandaloneInputModule Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: StandaloneInputModule Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+    - goDatas_byGlobalId:
+        keys:
+        - globalObjectIdString: GlobalObjectId_V1-2-52b5e50dec7e5db4ba8d0a7dc0242ccb-2002483725-0
+        - globalObjectIdString: GlobalObjectId_V1-2-52b5e50dec7e5db4ba8d0a7dc0242ccb-953933748-0
+        - globalObjectIdString: GlobalObjectId_V1-2-52b5e50dec7e5db4ba8d0a7dc0242ccb-1335924940-0
+        - globalObjectIdString: GlobalObjectId_V1-2-52b5e50dec7e5db4ba8d0a7dc0242ccb-1424383833-0
+        values:
+        - colorIndex: 2
+          iconNameOrGuid: Settings Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: Settings Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: BoxCollider Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
+        - colorIndex: 0
+          iconNameOrGuid: BoxCollider Icon
+          isIconRecursive: 0
+          isColorRecursive: 0
     - goDatas_byGlobalId:
         keys: []
         values: []
