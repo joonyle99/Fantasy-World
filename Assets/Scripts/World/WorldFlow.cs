@@ -1,34 +1,33 @@
 using System.Threading;
 using VContainer.Unity;
-using FantasyWorld.Core;
+using FantasyWorld.Game;
 using Cysharp.Threading.Tasks;
 
 namespace FantasyWorld.World
 {
     /// <summary>
-    /// World 세션 진입점. 전역 음악을 켜고 AreaTransition 으로 첫 구역을 로드한다.
+    /// World 세션 진입점. 첫 구역을 로드하고 GameFlow 에 "세션 준비 완료"를 알린다.
+    /// (전역 음악은 GameplayAudioDirector 가 켠다)
     /// </summary>
     public sealed class WorldFlow : IAsyncStartable
     {
         private const string FIRST_AREA = "Area_Garden";
 
-        private readonly AudioService _audioService;
-        private readonly GameSounds _sounds;
         private readonly AreaTransition _areaTransition;
+        private readonly GameFlow _gameFlow;
 
-        public WorldFlow(AudioService audioService, GameSounds sounds, AreaTransition areaTransition)
+        public WorldFlow(AreaTransition areaTransition, GameFlow gameFlow)
         {
-            _audioService = audioService;
-            _sounds = sounds;
             _areaTransition = areaTransition;
+            _gameFlow = gameFlow;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
         {
-            // 전역 음악 — 구역이 바뀌어도 유지된다 (같은 이벤트면 재시작 안 함)
-            _audioService.PlayMusic(_sounds.Music);
-
             await _areaTransition.GoTo(FIRST_AREA);
+
+            // 첫 구역까지 떴으니 이제 보여줘도 된다 — GameFlow 가 Playing 으로 전환
+            _gameFlow.NotifyWorldReady();
         }
     }
 }
