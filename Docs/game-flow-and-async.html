@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GameFlow와 async 노트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --surface-2: #eceff3;
+    --ink: #1b2230;
+    --ink-soft: #3f4a5c;
+    --muted: #6b7688;
+    --line: #dde2e9;
+    --accent: #1c7a74;
+    --accent-soft: #e0f0ee;
+    --coro: #9c5f27;
+    --coro-soft: #f5ebdf;
+    --shadow: 0 1px 2px rgba(20, 28, 42, .04), 0 8px 24px rgba(20, 28, 42, .05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f131a;
+      --surface: #161b23;
+      --surface-2: #1d232e;
+      --ink: #e7e9ee;
+      --ink-soft: #bcc3cf;
+      --muted: #868f9f;
+      --line: #29303c;
+      --accent: #57c3bc;
+      --accent-soft: #14302e;
+      --coro: #d59f68;
+      --coro-soft: #2a2218;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f131a;
+    --surface: #161b23;
+    --surface-2: #1d232e;
+    --ink: #e7e9ee;
+    --ink-soft: #bcc3cf;
+    --muted: #868f9f;
+    --line: #29303c;
+    --accent: #57c3bc;
+    --accent-soft: #14302e;
+    --coro: #d59f68;
+    --coro-soft: #2a2218;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .35);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 2rem; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans KR", "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+    font-size: 16px;
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    display: grid;
+    grid-template-columns: 1fr;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 2.5rem);
+  }
+  @media (min-width: 1000px) {
+    .wrap { grid-template-columns: 210px minmax(0, 760px); gap: 3.5rem; align-items: start; }
+  }
+
+  /* ---- table of contents ---- */
+  nav.toc {
+    font-size: .84rem;
+    line-height: 1.5;
+  }
+  @media (min-width: 1000px) {
+    nav.toc { position: sticky; top: 2rem; }
+  }
+  nav.toc .eyebrow { margin-bottom: .7rem; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .1rem; }
+  nav.toc ol ol { padding-left: .85rem; margin: .1rem 0 .35rem; border-left: 1px solid var(--line); }
+  nav.toc a {
+    display: block;
+    padding: .18rem 0;
+    color: var(--muted);
+    text-decoration: none;
+    border-radius: 3px;
+  }
+  nav.toc a:hover { color: var(--accent); }
+  nav.toc > ol > li > a { color: var(--ink-soft); font-weight: 500; }
+  @media (max-width: 999px) {
+    nav.toc {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.1rem 1.25rem;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow);
+    }
+  }
+
+  main { min-width: 0; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .7rem;
+    font-weight: 500;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  header.doc-head {
+    padding-bottom: 1.8rem;
+    margin-bottom: 2.6rem;
+    border-bottom: 1px solid var(--line);
+  }
+  header.doc-head h1 {
+    font-size: clamp(1.7rem, 4.5vw, 2.35rem);
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -.015em;
+    margin: .55rem 0 .5rem;
+    text-wrap: balance;
+  }
+  header.doc-head .lede {
+    color: var(--ink-soft);
+    font-size: 1.02rem;
+    margin: 0;
+    max-width: 60ch;
+  }
+  header.doc-head .meta {
+    margin-top: 1.1rem;
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .76rem;
+    color: var(--muted);
+  }
+  header.doc-head .meta code {
+    background: var(--surface-2);
+    padding: .12em .45em;
+    border-radius: 4px;
+  }
+
+  section.part { margin-bottom: 3.5rem; }
+  section.part > .part-label {
+    display: flex;
+    align-items: baseline;
+    gap: .8rem;
+    padding-bottom: .6rem;
+    border-bottom: 2px solid var(--accent);
+    margin-bottom: 1.8rem;
+  }
+  section.part > .part-label h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    margin: 0;
+  }
+  section.part > .part-label .num {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  h3 {
+    font-size: 1.14rem;
+    font-weight: 600;
+    letter-spacing: -.005em;
+    margin: 2.4rem 0 .7rem;
+    scroll-margin-top: 2rem;
+  }
+  h3:first-of-type { margin-top: 0; }
+  h4 {
+    font-size: .96rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin: 1.6rem 0 .5rem;
+  }
+
+  p { margin: 0 0 1rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+
+  ul, ol { max-width: 68ch; padding-left: 1.3rem; margin: 0 0 1.15rem; }
+  li { margin-bottom: .4rem; }
+  li::marker { color: var(--muted); }
+
+  /* ---- inline code ---- */
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .87em;
+  }
+  p code, li code, td code {
+    background: var(--surface-2);
+    padding: .13em .42em;
+    border-radius: 4px;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  /* ---- code blocks ---- */
+  pre {
+    margin: 0 0 1.4rem;
+    padding: 1.05rem 1.2rem;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: .855rem;
+    line-height: 1.65;
+  }
+  pre code { background: none; padding: 0; white-space: pre; color: var(--ink); }
+  pre .cm { color: var(--muted); font-style: italic; }
+  pre .kw { color: var(--accent); font-weight: 600; }
+  pre .kw-co { color: var(--coro); font-weight: 600; }
+
+  /* ---- callout ---- */
+  .note {
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    border-radius: 8px;
+    padding: .95rem 1.15rem;
+    margin: 0 0 1.4rem;
+    font-size: .93rem;
+  }
+  .note p { margin: 0; max-width: none; }
+  .note p + p { margin-top: .5rem; }
+  .note .tag {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: .3rem;
+  }
+
+  /* ---- tables ---- */
+  .table-scroll { overflow-x: auto; margin: 0 0 1.5rem; border: 1px solid var(--line); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; padding: .68rem .9rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th {
+    background: var(--surface-2);
+    font-weight: 600;
+    font-size: .78rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td code { white-space: nowrap; }
+  td.co code { background: var(--coro-soft); color: var(--coro); }
+  td.as code { background: var(--accent-soft); color: var(--accent); }
+
+  /* ---- numbered timeline ---- */
+  ol.steps { list-style: none; padding: 0; margin: 0 0 1.5rem; counter-reset: step; max-width: 70ch; }
+  ol.steps > li {
+    position: relative;
+    padding: 0 0 1.2rem 2.75rem;
+    counter-increment: step;
+  }
+  ol.steps > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 0;
+    width: 1.75rem; height: 1.75rem;
+    display: grid; place-items: center;
+    background: var(--surface);
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    border-radius: 50%;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .8rem;
+    font-weight: 600;
+  }
+  ol.steps > li::after {
+    content: "";
+    position: absolute;
+    left: .87rem; top: 1.9rem; bottom: 0;
+    width: 1.5px;
+    background: var(--line);
+  }
+  ol.steps > li:last-child { padding-bottom: 0; }
+  ol.steps > li:last-child::after { display: none; }
+  ol.steps li p { margin: 0; max-width: none; }
+  ol.steps li p + p { margin-top: .35rem; }
+  ol.steps pre { margin-top: .7rem; margin-bottom: 0; }
+
+  /* ---- side-by-side compare ---- */
+  .compare { display: grid; gap: 1rem; margin: 0 0 1.5rem; }
+  @media (min-width: 640px) { .compare { grid-template-columns: 1fr 1fr; } }
+  .compare > div {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .compare .lane-head {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .74rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .55rem .95rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .compare .co .lane-head { color: var(--coro); border-top: 3px solid var(--coro); }
+  .compare .as .lane-head { color: var(--accent); border-top: 3px solid var(--accent); }
+  .compare pre { margin: 0; border: none; border-left: none; border-radius: 0; background: var(--surface); }
+
+  /* ---- state diagram ---- */
+  .diagram { overflow-x: auto; margin: 0 0 1.5rem; padding: 1.2rem 0; }
+  .diagram svg { display: block; min-width: 560px; }
+  .diagram text { font-family: "IBM Plex Mono", ui-monospace, monospace; fill: var(--ink); }
+  .diagram .box { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; }
+  .diagram .flow { stroke: var(--muted); stroke-width: 1.4; fill: none; marker-end: url(#arrow); }
+  .diagram .lbl { fill: var(--muted); font-size: 11px; }
+  .diagram .st { font-size: 13px; font-weight: 600; }
+  .diagram .arrowhead { fill: var(--muted); }
+
+  .def { margin: 0 0 1.4rem; max-width: 70ch; }
+  .def dt { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 600; color: var(--accent); margin-bottom: .2rem; }
+  .def dd { margin: 0 0 1rem; color: var(--ink-soft); }
+  .def dd:last-child { margin-bottom: 0; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    font-size: .8rem;
+    color: var(--muted);
+  }
+  footer code { background: var(--surface-2); padding: .1em .4em; border-radius: 4px; }
+
+  ::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+  a:focus-visible, nav.toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="toc" aria-label="목차">
+    <div class="eyebrow">목차</div>
+    <ol>
+      <li><a href="#part-flow">1 &nbsp;타이틀 · 일시정지 흐름</a>
+        <ol>
+          <li><a href="#state">상태 하나로 흐름을 표현</a></li>
+          <li><a href="#boot">부팅 시퀀스</a></li>
+          <li><a href="#gototitle">Title 씬 로드</a></li>
+          <li><a href="#titlescene">Title 씬 구성과 주입</a></li>
+          <li><a href="#startgame">StartGame</a></li>
+          <li><a href="#pause">일시정지</a></li>
+          <li><a href="#intent">설계 의도</a></li>
+        </ol>
+      </li>
+      <li><a href="#part-async">2 &nbsp;async · await · UniTask</a>
+        <ol>
+          <li><a href="#map">한 줄 대응</a></li>
+          <li><a href="#keywords">각 키워드</a></li>
+          <li><a href="#sidebyside">나란히 비교</a></li>
+          <li><a href="#frames">StartAsync 프레임 단위</a></li>
+          <li><a href="#ct">CancellationToken</a></li>
+          <li><a href="#forget">.Forget()</a></li>
+          <li><a href="#diff">코루틴과 다른 점</a></li>
+          <li><a href="#why">왜 async를 쓰나</a></li>
+        </ol>
+      </li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="doc-head">
+      <div class="eyebrow">Fantasy World · 개발 노트</div>
+      <h1>GameFlow와 async 노트</h1>
+      <p class="lede">
+        Phase 2에서 들어온 타이틀 씬 · 일시정지 시스템의 로직과,
+        그 코드가 기대는 <code>async / await / UniTask</code>를 코루틴 경험에 얹어 정리한다.
+      </p>
+      <p class="meta">대상 파일 &nbsp;<code>GameFlow.cs</code> &nbsp;<code>TitleMenu.cs</code> &nbsp;<code>PauseMenuView.cs</code> &nbsp;<code>InputService.cs</code> &nbsp;<code>SceneLoader.cs</code></p>
+    </header>
+
+    <!-- ============ PART 1 ============ -->
+    <section class="part" id="part-flow">
+      <div class="part-label"><span class="num">01</span><h2>타이틀 · 일시정지 흐름</h2></div>
+
+      <h3 id="state">상태 하나로 흐름을 표현</h3>
+      <p>
+        <code>GameState</code> enum(<code>Booting → Title → Loading → Playing ⇄ Paused</code>)을
+        <strong><code>GameFlow</code>가 소유</strong>한다. 상태를 바꿀 때마다 씬 로드 · <code>Time.timeScale</code> · 입력을 조작한다.
+      </p>
+      <ul>
+        <li><code>GameStateController&lt;GameState&gt;</code> — JoonyleGameDevKit의 가벼운 enum 상태기. <code>ChangeState(next)</code> 하면 <code>OnStateChanged(prev, next)</code> 이벤트가 발행된다.</li>
+        <li><code>GameFlow</code>는 이 내부 이벤트를 자기 <code>public event StateChanged</code>로 그대로 전달한다 → 뷰(<code>PauseMenuView</code>)가 구독한다.</li>
+      </ul>
+
+      <div class="diagram" role="img" aria-label="게임 상태 전환도: Booting에서 Title로, Title에서 Playing으로, Playing과 Paused 사이 양방향, Paused에서 Title로 복귀">
+        <svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0L10 5L0 10z" class="arrowhead"/>
+            </marker>
+          </defs>
+          <!-- boxes -->
+          <rect class="box" x="8"   y="70" width="92" height="40" rx="7"/>
+          <text class="st" x="54"  y="94" text-anchor="middle">Booting</text>
+          <rect class="box" x="170" y="70" width="92" height="40" rx="7"/>
+          <text class="st" x="216" y="94" text-anchor="middle">Title</text>
+          <rect class="box" x="360" y="70" width="100" height="40" rx="7"/>
+          <text class="st" x="410" y="94" text-anchor="middle">Playing</text>
+          <rect class="box" x="512" y="70" width="96" height="40" rx="7"/>
+          <text class="st" x="560" y="94" text-anchor="middle">Paused</text>
+          <!-- flows -->
+          <path class="flow" d="M102 90 L166 90"/>
+          <text class="lbl" x="134" y="82" text-anchor="middle">StartAsync</text>
+          <path class="flow" d="M264 90 L356 90"/>
+          <text class="lbl" x="310" y="82" text-anchor="middle">StartGame</text>
+          <path class="flow" d="M462 82 L508 82"/>
+          <text class="lbl" x="485" y="74" text-anchor="middle">Esc</text>
+          <path class="flow" d="M508 100 L464 100"/>
+          <text class="lbl" x="486" y="116" text-anchor="middle">Resume</text>
+          <path class="flow" d="M560 112 C 560 168, 216 168, 216 114"/>
+          <text class="lbl" x="388" y="184" text-anchor="middle">ReturnToTitle  ·  &quot;Quit to Title&quot;</text>
+        </svg>
+      </div>
+      <div class="note">
+        <span class="tag">기억할 것</span>
+        <p>모든 전환은 <code>Loading</code>을 거친다 — <code>ChangeState(Loading)</code> → <code>await</code> 씬 로드 → 목적지 상태.
+        <code>_busy</code> 플래그가 전환 도중의 재진입을 막는다.</p>
+      </div>
+
+      <h3 id="boot">부팅 시퀀스</h3>
+      <p>Bootstrap 씬에는 <code>GameLifetimeScope</code> 하나만 있다.</p>
+      <ol class="steps">
+        <li>
+          <p><code>GameLifetimeScope.Awake()</code> → <code>base.Awake()</code>에서 컨테이너가 빌드된다.</p>
+        </li>
+        <li>
+          <p>빌드 중 EntryPoint가 즉시 생성된다 —
+          <code>InputService</code>(<code>IInitializable</code> → <code>Initialize()</code> 호출, 액션 활성화),
+          이어서 <code>GameFlow</code>(<code>IAsyncStartable</code> → <code>StartAsync()</code> 호출).</p>
+        </li>
+        <li>
+          <p><code>Awake()</code>로 돌아와 <code>DontDestroyOnLoad(gameObject)</code> — 씬이 바뀌어도 이 스코프는 생존한다.</p>
+        </li>
+        <li>
+          <p><code>GameFlow.StartAsync</code>가 구독을 걸고 타이틀로 향한다.</p>
+<pre><code><span class="kw">async</span> UniTask StartAsync(CancellationToken cancellation)
+{
+    _stateController.OnStateChanged += OnStateChanged;   <span class="cm">// 내부 → public 전달</span>
+    _inputService.PausePerformed    += TogglePause;      <span class="cm">// Esc 구독</span>
+
+    <span class="kw">await</span> GoToTitle();
+}</code></pre>
+        </li>
+      </ol>
+
+      <h3 id="gototitle">Title 씬 로드 — GoToTitle</h3>
+<pre><code><span class="kw">private async</span> UniTask GoToTitle()
+{
+    _busy = <span class="kw">true</span>;                                <span class="cm">// 전환 중 재진입 방지</span>
+    _stateController.ChangeState(GameState.Loading);
+    <span class="kw">await</span> _sceneLoader.LoadAsync(TITLE_SCENE, _scope);   <span class="cm">// _scope = GameLifetimeScope</span>
+    _stateController.ChangeState(GameState.Title);
+    _busy = <span class="kw">false</span>;
+}</code></pre>
+      <p><code>SceneLoader.LoadAsync</code>의 핵심:</p>
+<pre><code><span class="kw">using</span> (LifetimeScope.EnqueueParent(parent))          <span class="cm">// "다음에 Awake하는 LifetimeScope는 parent를 부모로"</span>
+{
+    <span class="kw">await</span> SceneManager.LoadSceneAsync(<span class="s">"Title"</span>, Single);   <span class="cm">// 이 안에서 TitleLifetimeScope.Awake 발생</span>
+}</code></pre>
+      <ul>
+        <li><code>Single</code> 모드 → Bootstrap이 언로드된다. 그러나 <code>GameLifetimeScope</code>는 <code>DontDestroyOnLoad</code>라 살아남는다.</li>
+        <li><code>EnqueueParent</code> 덕분에 새로 뜨는 <code>TitleLifetimeScope</code>의 부모가 <code>GameLifetimeScope</code>로 연결된다 — 자식 스코프가 부모 컨테이너의 등록물을 주입받을 수 있게.</li>
+        <li><code>using</code> 블록이 <code>await</code>를 가로질러 열려 있다. 새 씬의 <code>LifetimeScope.Awake</code>가 로드 도중에 실행되므로, 그 시점까지 부모 지정이 유효해야 하기 때문.</li>
+      </ul>
+
+      <h3 id="titlescene">Title 씬 구성과 주입</h3>
+      <p>씬 구성: Camera, EventSystem, <code>TitleLifetimeScope</code>(GO), Canvas(제목 텍스트 + Start/Quit 버튼 + <code>TitleMenu</code> 컴포넌트).</p>
+<pre><code>TitleLifetimeScope.Configure()
+  └ builder.RegisterComponentInHierarchy&lt;TitleMenu&gt;()
+      → 씬에서 TitleMenu 를 찾아 등록 + [Inject] Construct(GameFlow) 호출
+        (GameFlow 는 부모 컨테이너의 싱글턴 → 그 인스턴스를 주입)</code></pre>
+      <p><code>TitleMenu</code>는 <code>OnEnable</code>에서 버튼 <code>onClick</code> 리스너를 걸고 <code>OnDisable</code>에서 해제한다(씬을 나갈 때 자동 정리).</p>
+      <ul>
+        <li><strong>Start</strong> → <code>_startButton.interactable = false</code>(더블클릭 방지) + <code>_gameFlow.StartGame().Forget()</code></li>
+        <li><strong>Quit</strong> → 에디터면 <code>isPlaying = false</code>, 빌드면 <code>Application.Quit()</code></li>
+      </ul>
+
+      <h3 id="startgame">StartGame — World 씬 로드</h3>
+<pre><code><span class="kw">public async</span> UniTask StartGame()
+{
+    <span class="kw">if</span> (_busy || _stateController.CurrState != GameState.Title)
+        <span class="kw">return</span>;                                     <span class="cm">// 가드</span>
+
+    _busy = <span class="kw">true</span>;
+    _stateController.ChangeState(GameState.Loading);
+    <span class="kw">await</span> _sceneLoader.LoadAsync(WORLD_SCENE, _scope);
+    _stateController.ChangeState(GameState.Playing);
+    _busy = <span class="kw">false</span>;
+}</code></pre>
+      <p>
+        World가 <code>Single</code> 로드되면서 Title이 언로드되고 <code>TitleLifetimeScope</code>가 파괴된다(리스너는 <code>OnDisable</code>로 정리).
+        <code>GameLifetimeScope</code>는 여전히 생존.
+      </p>
+      <p>
+        World가 뜨면 <code>WorldLifetimeScope</code>가 씬에서 <code>GooseController</code> · <code>CameraDirector</code> · <code>ObjectiveHudView</code> ·
+        <strong><code>PauseMenuView</code></strong>를 찾아 주입하고, <code>WorldFlow</code>가 음악 + <code>Area_Garden</code>을 Additive 로드한다.
+        <code>ChangeState(Playing)</code> 발행 → <code>StateChanged</code> → <code>PauseMenuView.OnStateChanged(Loading→Playing)</code> → 패널은 계속 숨김.
+      </p>
+
+      <h3 id="pause">일시정지 — 왜 GameFlow가 소유하나</h3>
+      <p>
+        <code>Playing ⇄ Paused</code>는 <strong>앱 전역 흐름의 일부</strong>이고, <code>timeScale</code> · 입력 차단은 게임플레이 씬이 살아있는 채로 조작해야 한다.
+        <code>GameFlow</code>는 <code>GameLifetimeScope</code>에 상주하므로 씬 전환과 무관하게 이 상태를 안정적으로 관리한다.
+        <code>PauseMenuView</code>는 <strong>뷰일 뿐</strong> — 상태를 만들지 않고 반영만 한다.
+      </p>
+
+      <h4>Esc를 눌렀을 때</h4>
+      <ol class="steps">
+        <li><p><code>InputService</code>: UI/Cancel 액션 <code>performed</code> → <code>PausePerformed</code> 이벤트.</p></li>
+        <li>
+          <p><code>GameFlow.TogglePause()</code>:</p>
+<pre><code><span class="kw">if</span> (_busy) <span class="kw">return</span>;
+<span class="kw">switch</span> (_stateController.CurrState)
+{
+    <span class="kw">case</span> GameState.Playing: SetPaused(<span class="kw">true</span>);  <span class="kw">break</span>;
+    <span class="kw">case</span> GameState.Paused:  SetPaused(<span class="kw">false</span>); <span class="kw">break</span>;
+}</code></pre>
+        </li>
+        <li>
+          <p><code>SetPaused(true)</code>:</p>
+<pre><code>Time.timeScale = <span class="s">0</span>;                              <span class="cm">// Update deltaTime · 물리 · 애니메이션 정지</span>
+_inputService.SetGameplayInputEnabled(<span class="kw">false</span>);   <span class="cm">// Player 맵 Disable → 구스 안 움직임</span>
+_stateController.ChangeState(GameState.Paused);</code></pre>
+        </li>
+        <li>
+          <p><code>ChangeState(Paused)</code> → <code>OnStateChanged</code> → <code>StateChanged</code> →
+          <code>PauseMenuView.OnStateChanged</code>: <code>_panel.SetActive(next == Paused)</code> → 패널 ON.</p>
+        </li>
+      </ol>
+      <div class="note">
+        <span class="tag">왜 UI/Cancel 액션을 따로 켜두나</span>
+        <p>일시정지 중엔 Player 맵을 끄는데(<code>SetGameplayInputEnabled(false)</code>), <strong>해제 입력은 계속 받아야</strong> 한다.
+        그래서 <code>_pause</code> 액션만 <code>InputService.Initialize()</code>에서 독립적으로 <code>Enable()</code> 해둔다.</p>
+      </div>
+
+      <h4>Resume 클릭</h4>
+      <p>
+        <code>PauseMenuView.OnResumeClicked</code> → <code>_gameFlow.TogglePause()</code> → 지금 Paused → <code>SetPaused(false)</code> →
+        <code>timeScale = 1</code>, 입력 복구, <code>ChangeState(Playing)</code> → 패널 OFF.
+      </p>
+
+      <h4>Quit to Title 클릭</h4>
+<pre><code><span class="kw">public async</span> UniTask ReturnToTitle()
+{
+    <span class="kw">if</span> (_busy || (CurrState != GameState.Playing &amp;&amp; CurrState != GameState.Paused))
+        <span class="kw">return</span>;
+
+    SetPaused(<span class="kw">false</span>);                <span class="cm">// timeScale=1 먼저 복구 (안 하면 Title 씬이 멈춘 채로 뜸)</span>
+    _audioService.StopMusic(<span class="kw">false</span>);
+    <span class="kw">await</span> GoToTitle();               <span class="cm">// Loading → Title Single 로드(World+Area 언로드) → Title</span>
+}</code></pre>
+      <p>
+        <code>SetPaused(false)</code>에는 가드가 있어서 Paused면 정상 복구, 이미 Playing이면 no-op이다 — <code>timeScale</code> 리셋을 안전하게 위임한다.
+      </p>
+
+      <h3 id="intent">설계 의도</h3>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>요소</th><th>역할</th><th>원칙</th></tr></thead>
+          <tbody>
+            <tr><td><code>GameFlow</code></td><td>상태 · 씬 전환 · <code>timeScale</code> · 입력 enable의 <strong>단일 소유자</strong></td><td><code>timeScale</code>을 여러 곳에서 만지면 추적 불가</td></tr>
+            <tr><td><code>TitleMenu</code><br><code>PauseMenuView</code></td><td><strong>얇은 뷰</strong> — 버튼 → GameFlow 호출, GameFlow 상태 → UI 반영 (단방향)</td><td>상태를 만들지 않음</td></tr>
+            <tr><td><code>TitleLifetimeScope</code></td><td>Title 씬 전용(TitleMenu 주입) 담당, 씬 나가면 정리</td><td>World / Area 스코프와 같은 패턴</td></tr>
+            <tr><td><code>InputService</code><br><code>.PausePerformed</code></td><td>게임플레이 입력과 <strong>독립</strong></td><td>일시정지 토글이 Player 맵 on/off와 얽히면 안 됨</td></tr>
+            <tr><td><code>_busy</code> + state 가드</td><td>전환 중 버튼 / 입력 재진입 차단</td><td>비동기 씬 로드 도중 중복 호출 방지</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ PART 2 ============ -->
+    <section class="part" id="part-async">
+      <div class="part-label"><span class="num">02</span><h2>async · await · UniTask</h2></div>
+
+      <p>
+        코루틴을 써봤으면 사실상 다 아는 것이다. <strong>async / await는 코루틴의 문법만 바꾼 것</strong>이라고 봐도 된다.
+        아래에서 <span style="color:var(--coro);font-weight:600">주황</span>은 코루틴 쪽,
+        <span style="color:var(--accent);font-weight:600">청록</span>은 async 쪽을 가리킨다.
+      </p>
+
+      <h3 id="map">한 줄 대응</h3>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>코루틴</th><th>async / await</th><th>의미</th></tr></thead>
+          <tbody>
+            <tr><td class="co"><code>IEnumerator</code> 반환</td><td class="as"><code>async UniTask</code> 반환</td><td>"이 함수는 중간에 멈췄다 이어질 수 있다"</td></tr>
+            <tr><td class="co"><code>yield return ...</code></td><td class="as"><code>await ...</code></td><td>"이거 끝날 때까지 여기서 멈춰라"</td></tr>
+            <tr><td class="co"><code>yield return null</code></td><td class="as"><code>await UniTask.Yield()</code></td><td>1프레임 대기</td></tr>
+            <tr><td class="co"><code>yield return new WaitForSeconds(2)</code></td><td class="as"><code>await UniTask.Delay(2000)</code></td><td>2초 대기</td></tr>
+            <tr><td class="co"><code>yield return StartCoroutine(Other())</code></td><td class="as"><code>await Other()</code></td><td>다른 비동기 함수 끝날 때까지 대기</td></tr>
+            <tr><td class="co"><code>StartCoroutine(X())</code></td><td class="as"><code>X().Forget()</code></td><td>기다리지 않고 실행만</td></tr>
+            <tr><td class="co"><code>StopCoroutine</code></td><td class="as"><code>CancellationToken</code></td><td>중단</td></tr>
+            <tr><td class="co">결과값 못 받음 (필드 / 콜백 우회)</td><td class="as"><code>var x = await LoadThing();</code></td><td><strong>await가 값을 돌려준다</strong></td></tr>
+            <tr><td class="co">MonoBehaviour 필요</td><td class="as"><strong>아무 클래스나 OK</strong></td><td>← <code>GameFlow</code>가 이걸 쓰는 이유</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="keywords">각 키워드</h3>
+      <dl class="def">
+        <dt>async</dt>
+        <dd>"이 메서드 안에 <code>await</code>가 있다"는 표시. 컴파일러가 이걸 보면 메서드를 <strong>코루틴처럼 상태기계로 재작성</strong>한다 — <code>await</code> 지점마다 잘라서, 나중에 그 지점부터 이어서 실행하게. 코루틴 컴파일러가 <code>IEnumerator</code>에 하는 일과 똑같다.</dd>
+        <dt>await</dt>
+        <dd>"이 작업 끝날 때까지 이 메서드를 여기서 멈춰라. 끝나면 다음 줄부터 이어서." 멈춰 있는 동안 <strong>게임의 나머지 코드(Update 등)는 계속 돈다.</strong> 스레드를 막지 않는다. <code>yield return</code>과 같은 감각.</dd>
+        <dt>UniTask</dt>
+        <dd>"진행 중인 비동기 작업의 손잡이." 코루틴의 <code>Coroutine</code> 객체에 대응한다 — 단, <code>await</code>로 완료를 기다릴 수 있고 <code>UniTask&lt;T&gt;</code>는 결과값을 돌려준다. .NET 표준 <code>Task</code>는 힙 할당이 있어 GC 부담이 있고, <code>UniTask</code>는 struct 기반 무할당 + Unity PlayerLoop에 통합돼서 Unity에선 사실상 표준이다.</dd>
+      </dl>
+
+      <h3 id="sidebyside">나란히 비교</h3>
+      <p>동작은 완전히 동일하다 — "시작" 즉시 출력 → 제어 반환(게임 계속 돌아감) → 2초 뒤 "2초 후".</p>
+      <div class="compare">
+        <div class="co">
+          <div class="lane-head">코루틴</div>
+<pre><code>IEnumerator Example()
+{
+    Debug.Log(<span class="s">"시작"</span>);
+    <span class="kw-co">yield return</span> new WaitForSeconds(<span class="s">2f</span>);
+    Debug.Log(<span class="s">"2초 후"</span>);
+}
+
+StartCoroutine(Example());</code></pre>
+        </div>
+        <div class="as">
+          <div class="lane-head">async / await</div>
+<pre><code><span class="kw">async</span> UniTask ExampleAsync()
+{
+    Debug.Log(<span class="s">"시작"</span>);
+    <span class="kw">await</span> UniTask.Delay(<span class="s">2000</span>);
+    Debug.Log(<span class="s">"2초 후"</span>);
+}
+
+ExampleAsync().Forget();</code></pre>
+        </div>
+      </div>
+
+      <h3 id="frames">StartAsync가 실제로 하는 일 (프레임 단위)</h3>
+<pre><code><span class="kw">public async</span> UniTask StartAsync(CancellationToken cancellation)
+{
+    _stateController.OnStateChanged += OnStateChanged;   <span class="cm">// ① 즉시 실행</span>
+    _inputService.PausePerformed    += TogglePause;      <span class="cm">// ② 즉시 실행</span>
+    <span class="kw">await</span> GoToTitle();                                   <span class="cm">// ③ 여기서 멈춤</span>
+}</code></pre>
+      <ol class="steps">
+        <li>
+          <p><strong>프레임 N</strong> (VContainer가 컨테이너를 빌드하면서 호출):</p>
+          <p><code>+= OnStateChanged</code> 실행 → <code>+= TogglePause</code> 실행 → <code>await GoToTitle()</code> 도달.</p>
+        </li>
+        <li>
+          <p><code>GoToTitle</code> 안으로 들어가 <code>_busy = true</code>, <code>ChangeState(Loading)</code>까지 <strong>즉시</strong> 실행.</p>
+        </li>
+        <li>
+          <p>그 안의 <code>await _sceneLoader.LoadAsync("Title")</code> 도달 → 씬 로딩은 여러 프레임 걸린다 →
+          <strong><code>StartAsync</code>가 호출자(VContainer)에게 제어를 돌려준다.</strong> 컨테이너 빌드 계속, 게임 루프 계속.</p>
+        </li>
+        <li>
+          <p><strong>프레임 N + 몇</strong>: 씬 로딩 완료 → <code>LoadAsync</code>의 await 풀림 → <code>GoToTitle</code> 이어서:
+          <code>ChangeState(Title)</code>, <code>_busy = false</code> → <code>GoToTitle</code> 끝 → <code>StartAsync</code>의 <code>await</code>도 풀림 → 종료.</p>
+        </li>
+      </ol>
+      <div class="note">
+        <span class="tag">요점</span>
+        <p><code>StartAsync</code>는 <strong>한 번 호출됐지만 여러 프레임에 걸쳐 조각조각 실행</strong>된다. 코루틴과 똑같다.</p>
+      </div>
+
+      <h3 id="ct">CancellationToken cancellation</h3>
+      <p>
+        VContainer가 넘겨주는 "취소 신호". <strong>스코프가 파괴되면 이 토큰이 '취소됨' 상태</strong>가 된다.
+        코루틴에서 GameObject가 꺼지면 자동으로 멈추는 것 ≈ 이 토큰.
+      </p>
+      <p>
+        차이: <strong>async는 자동으로 안 멈춘다.</strong> 긴 작업이면 직접
+        <code>await Something().AttachExternalCancellation(cancellation)</code> 같은 식으로 "취소되면 중단"을 걸어줘야 한다.
+        우리 <code>StartAsync</code>는 짧아서 지금은 안 쓰지만, <code>IAsyncStartable</code> 인터페이스가 시그니처에 요구하기 때문에 파라미터가 있다.
+      </p>
+
+      <h3 id="forget">.Forget()</h3>
+      <p>
+        <code>async</code> 메서드를 호출하고 <code>await</code> 안 하면 컴파일러가 경고한다("안 기다리는데 괜찮아?"). <code>.Forget()</code>은 UniTask 확장 메서드로:
+      </p>
+      <ul>
+        <li>"일부러 안 기다린다, 실행만 하고 잊는다"를 명시</li>
+        <li>그 안에서 터진 예외를 <strong>삼키지 않고 로그로 뱉음</strong></li>
+      </ul>
+      <p>
+        버튼 핸들러(<code>void OnStartClicked()</code>)에서 <code>_gameFlow.StartGame()</code>을 호출할 때 쓴다.
+        버튼 콜백은 <code>void</code>라 <code>await</code>가 불가능하니까.
+      </p>
+
+      <h3 id="diff">코루틴과 다른 점 (주의)</h3>
+      <ol>
+        <li><strong><code>async void</code>는 쓰지 마라.</strong> 예외를 잡을 수 없다. 항상 <code>async UniTask</code>. (반환을 안 기다릴 땐 <code>.Forget()</code>)</li>
+        <li><strong>자동으로 안 멈춘다.</strong> GameObject가 꺼져도 계속 돈다 → <code>CancellationToken</code>으로 관리.</li>
+        <li><strong>예외가 <code>await</code> 체인을 타고 위로 전파된다.</strong> 코루틴은 에러 나면 조용히 멈추지만, async는 <code>StartAsync → GoToTitle → LoadAsync</code> 어디서 터져도 위로 올라온다.</li>
+        <li><code>await</code> 다음 줄은 (UniTask 기본) 메인 스레드에서 이어진다 → Unity API 호출 안전.</li>
+      </ol>
+
+      <h3 id="why">왜 여기서 코루틴 대신 async를 쓰나</h3>
+      <p>
+        <code>GameFlow</code>는 <strong>MonoBehaviour가 아니다</strong>(VContainer가 관리하는 순수 C# 클래스).
+        <code>StartCoroutine</code>을 못 쓴다. async / await는 아무 클래스에서나 되고, 값 반환 · 예외 전파가 되고,
+        <code>StartAsync → GoToTitle → SceneLoader.LoadAsync → SceneManager.LoadSceneAsync</code>처럼 여러 계층을 깔끔하게 관통한다.
+      </p>
+    </section>
+
+    <footer>
+      <p>Fantasy World 개발 노트 · Phase 2 정리 · 2026-08-28</p>
+      <p>원본 코드: <code>Assets/Scripts/Game/</code>, <code>Assets/Scripts/Core/</code></p>
+    </footer>
+  </main>
+</div>
+</body>
+</html>
