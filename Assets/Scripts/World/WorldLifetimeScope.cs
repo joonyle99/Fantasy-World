@@ -36,6 +36,7 @@ namespace FantasyWorld.World
             builder.RegisterComponentInHierarchy<GooseController>();
             builder.RegisterComponentInHierarchy<CameraDirector>();
             builder.RegisterComponentInHierarchy<ObjectiveHudView>();
+            builder.RegisterComponentInHierarchy<PauseMenuView>();
 
             // 데이터 에셋
             builder.RegisterInstance(_gameSounds);

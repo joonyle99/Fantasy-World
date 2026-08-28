@@ -56,8 +56,8 @@ using UnityEngine.InputSystem;
 //           -> Configure(builder): 6개 등록 (설계도만)
 //           -> 컨테이너 빌드
 //                InputService, GameFlow 즉시 생성 (+ 생성자 주입)
-//                GameFlow <- SceneLoader, SaveSystem, AudioService
-//                InputService.Initialize() / GameFlow.Start() 호출
+//                GameFlow <- SceneLoader, AudioService, InputService
+//                InputService.Initialize() / GameFlow.StartAsync() 호출
 //      -> DontDestroyOnLoad (씬이 바뀌어도 유지)
 //      ...
 //    스코프 파괴 -> GameFlow.Dispose(), InputService.Dispose()

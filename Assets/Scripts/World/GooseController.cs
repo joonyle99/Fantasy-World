@@ -48,12 +48,13 @@ namespace FantasyWorld.World
 
         private void OnEnable()
         {
-            _inputService.HonkPerformed += OnHonk;
+            // 주 행동(Attack) 입력을 구스의 울음으로 해석한다
+            _inputService.AttackPerformed += OnHonk;
         }
 
         private void OnDisable()
         {
-            _inputService.HonkPerformed -= OnHonk;
+            _inputService.AttackPerformed -= OnHonk;
         }
 
         private void Start()
