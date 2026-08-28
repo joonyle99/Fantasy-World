@@ -20,3 +20,6 @@ MonoBehaviour:
   - _description: Drop the ball in the lake
     _completionKey: ball_in_lake
     _optional: 1
+  - _description: Honk at the fountain
+    _completionKey: honk_at_fountain
+    _optional: 1
