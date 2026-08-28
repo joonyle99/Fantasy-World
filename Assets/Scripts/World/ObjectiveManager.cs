@@ -19,6 +19,9 @@ namespace FantasyWorld.World
 
         public AreaObjectiveSet ActiveArea => _activeArea;
 
+        /// <summary>현재 구역의 필수 목표가 모두 끝났는지. AreaBoundary 게이트가 참고한다.</summary>
+        public bool CurrentAreaCleared => _areaCleared;
+
         public ObjectiveManager(GameplayEventBus eventBus, SaveSystem saveSystem)
         {
             _eventBus = eventBus;

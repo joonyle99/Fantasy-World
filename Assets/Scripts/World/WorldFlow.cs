@@ -6,21 +6,21 @@ using Cysharp.Threading.Tasks;
 namespace FantasyWorld.World
 {
     /// <summary>
-    /// World 세션 진입점. 전역 음악을 켜고 첫 구역을 로드한다.
+    /// World 세션 진입점. 전역 음악을 켜고 AreaTransition 으로 첫 구역을 로드한다.
     /// </summary>
     public sealed class WorldFlow : IAsyncStartable
     {
-        private readonly SceneLoader _sceneLoader;
+        private const string FIRST_AREA = "Area_Garden";
+
         private readonly AudioService _audioService;
         private readonly GameSounds _sounds;
-        private readonly LifetimeScope _scope;
+        private readonly AreaTransition _areaTransition;
 
-        public WorldFlow(SceneLoader sceneLoader, AudioService audioService, GameSounds sounds, LifetimeScope scope)
+        public WorldFlow(AudioService audioService, GameSounds sounds, AreaTransition areaTransition)
         {
-            _sceneLoader = sceneLoader;
             _audioService = audioService;
             _sounds = sounds;
-            _scope = scope;
+            _areaTransition = areaTransition;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -28,8 +28,7 @@ namespace FantasyWorld.World
             // 전역 음악 — 구역이 바뀌어도 유지된다 (같은 이벤트면 재시작 안 함)
             _audioService.PlayMusic(_sounds.Music);
 
-            // WorldLifetimeScope(_scope) 를 부모로 첫 구역을 Additive 로드
-            await _sceneLoader.LoadAdditiveAsync("Area_Garden", _scope, setActive: true);
+            await _areaTransition.GoTo(FIRST_AREA);
         }
     }
 }

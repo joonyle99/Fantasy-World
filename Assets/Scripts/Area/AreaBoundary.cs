@@ -1,22 +1,43 @@
 using VContainer;
 using UnityEngine;
-using FantasyWorld.Core;
+using FantasyWorld.World;
+using Cysharp.Threading.Tasks;
 
 namespace FantasyWorld.Area
 {
     /// <summary>
-    /// 구역 진입/이탈 감지. 구스가 경계를 넘으면 다음 구역 프리로드/언로드를 트리거한다.
+    /// 구역 경계 트리거. 구스가 들어오면 다음 구역으로 전환한다.
+    /// _requiresClear 면 현재 구역의 필수 목표가 모두 끝나야 통과할 수 있다.
     /// </summary>
+    [RequireComponent(typeof(Collider))]
     public sealed class AreaBoundary : MonoBehaviour
     {
-        private SceneLoader _sceneLoader;
+        [SerializeField] private string _nextAreaScene;
+        [Tooltip("체크하면 현재 구역이 클리어되기 전에는 통과 불가.")]
+        [SerializeField] private bool _requiresClear = true;
+
+        private AreaTransition _areaTransition;
+        private ObjectiveManager _objectiveManager;
 
         [Inject]
-        public void Construct(SceneLoader sceneLoader)
+        public void Construct(AreaTransition areaTransition, ObjectiveManager objectiveManager)
         {
-            _sceneLoader = sceneLoader;
+            _areaTransition = areaTransition;
+            _objectiveManager = objectiveManager;
         }
 
-        // TODO: OnTriggerEnter/Exit → 인접 구역 스트리밍 요청
+        private void OnTriggerEnter(Collider other)
+        {
+            if (string.IsNullOrEmpty(_nextAreaScene))
+                return;
+
+            if (!other.TryGetComponent(out GooseController _))
+                return;
+
+            if (_requiresClear && !_objectiveManager.CurrentAreaCleared)
+                return;
+
+            _areaTransition.GoTo(_nextAreaScene).Forget();
+        }
     }
 }

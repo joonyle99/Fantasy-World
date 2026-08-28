@@ -45,6 +45,7 @@ namespace FantasyWorld.World
             builder.Register<GameplayEventBus>(Lifetime.Singleton);
             builder.Register<NpcRegistry>(Lifetime.Singleton);
             builder.Register<ObjectiveManager>(Lifetime.Singleton);
+            builder.Register<AreaTransition>(Lifetime.Singleton);
 
             // 매 프레임 / 이벤트 콜백이 필요한 시스템 — 빌드 시 즉시 생성
             builder.RegisterEntryPoint<InteractionSystem>().AsSelf();
