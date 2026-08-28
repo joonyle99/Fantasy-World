@@ -8,14 +8,13 @@ namespace FantasyWorld.Core
     /// <summary>
     /// FMOD 재생 래퍼. 게임플레이 코드는 FMOD API 를 직접 부르지 않고 이 서비스만 의존한다.
     /// 무엇을 재생할지(EventReference)는 호출자가 넘긴다 — 게임플레이 사운드는
-    /// GameSounds(SO) 에 모아두고 GameplayAudioDirector 가 라우팅한다.
+    /// GameSounds(SO) 에, 구역 앰비언스는 각 Area 스코프에 두고 디렉터가 라우팅한다.
     /// 넘어온 참조가 비어 있으면 조용히 무시하므로, FMOD 뱅크가 아직 없어도 안전하다.
     /// </summary>
     public sealed class AudioService : IDisposable
     {
-        private EventInstance _music;
-        private EventReference _currentMusic;
-        private bool _musicPlaying;
+        private readonly LoopChannel _music = new();
+        private readonly LoopChannel _ambience = new();
 
         // ============== 일회성 SFX ==============
 
@@ -46,41 +45,21 @@ namespace FantasyWorld.Core
             RuntimeManager.PlayOneShotAttached(sound, source);
         }
 
-        // ============== 음악 (하나만 유지) ==============
+        // ============== 음악 (전역, 하나만 유지) ==============
 
-        public void PlayMusic(EventReference music)
-        {
-            if (music.IsNull)
-                return;
+        public void PlayMusic(EventReference music) => _music.Play(music);
 
-            // 이미 같은 곡이면 재시작하지 않는다 (구역 로드 때마다 처음으로 튀는 것 방지)
-            if (_musicPlaying && _currentMusic.Guid.Equals(music.Guid))
-                return;
-
-            StopMusic(allowFadeOut: false);
-
-            _music = RuntimeManager.CreateInstance(music);
-            _music.start();
-            _currentMusic = music;
-            _musicPlaying = true;
-        }
-
-        public void StopMusic(bool allowFadeOut = true)
-        {
-            if (!_musicPlaying)
-                return;
-
-            _music.stop(allowFadeOut ? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);
-            _music.release();
-            _musicPlaying = false;
-        }
+        public void StopMusic(bool allowFadeOut = true) => _music.Stop(allowFadeOut);
 
         /// <summary>현재 음악 이벤트의 로컬 파라미터 설정 (예: 긴장도).</summary>
-        public void SetMusicParameter(string parameterName, float value)
-        {
-            if (_musicPlaying)
-                _music.setParameterByName(parameterName, value);
-        }
+        public void SetMusicParameter(string parameterName, float value) => _music.SetParameter(parameterName, value);
+
+        // ============== 구역 앰비언스 (하나만 유지) ==============
+
+        /// <summary>현재 구역의 앰비언스 베드를 재생한다. 다른 구역으로 바뀌면 이전 것과 교차 페이드된다.</summary>
+        public void PlayAmbience(EventReference ambience) => _ambience.Play(ambience);
+
+        public void StopAmbience(bool allowFadeOut = true) => _ambience.Stop(allowFadeOut);
 
         // ============== 전역 파라미터 ==============
 
@@ -92,7 +71,55 @@ namespace FantasyWorld.Core
 
         public void Dispose()
         {
-            StopMusic(allowFadeOut: false);
+            _music.Stop(allowFadeOut: false);
+            _ambience.Stop(allowFadeOut: false);
+        }
+
+        /// <summary>
+        /// 한 번에 하나만 흐르는 루프 베드(음악·앰비언스). 같은 이벤트 재요청은 무시하고,
+        /// 다른 이벤트로 바뀌면 이전 것을 페이드아웃시키며 새 것으로 교체한다.
+        /// </summary>
+        private sealed class LoopChannel
+        {
+            private EventInstance _instance;
+            private EventReference _current;
+            private bool _playing;
+
+            public void Play(EventReference sound)
+            {
+                if (sound.IsNull)
+                {
+                    Stop();
+                    return;
+                }
+
+                // 같은 이벤트면 재시작하지 않는다 (구역 로드 때마다 처음으로 튀는 것 방지)
+                if (_playing && _current.Guid.Equals(sound.Guid))
+                    return;
+
+                Stop(allowFadeOut: true);
+
+                _instance = RuntimeManager.CreateInstance(sound);
+                _instance.start();
+                _current = sound;
+                _playing = true;
+            }
+
+            public void Stop(bool allowFadeOut = true)
+            {
+                if (!_playing)
+                    return;
+
+                _instance.stop(allowFadeOut ? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);
+                _instance.release();
+                _playing = false;
+            }
+
+            public void SetParameter(string parameterName, float value)
+            {
+                if (_playing)
+                    _instance.setParameterByName(parameterName, value);
+            }
         }
     }
 }

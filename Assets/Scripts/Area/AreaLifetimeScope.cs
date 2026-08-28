@@ -1,3 +1,4 @@
+using FMODUnity;
 using VContainer;
 using UnityEngine;
 using VContainer.Unity;
@@ -37,10 +38,14 @@ namespace FantasyWorld.Area
     {
         [SerializeField] private AreaObjectiveSet _objectiveSet;
 
+        [Tooltip("이 구역의 앰비언스 FMOD 이벤트. 비워두면 앰비언스 없음.")]
+        [SerializeField] private EventReference _ambience;
+
         protected override void Configure(IContainerBuilder builder)
         {
-            // 인스펙터에서 꽂은 구역별 목표 데이터를 그대로 등록
+            // 인스펙터에서 꽂은 구역별 데이터를 그대로 등록
             builder.RegisterInstance(_objectiveSet);
+            builder.RegisterInstance(_ambience);
 
             // 씬에 배치된 구역 전용 컴포넌트
             builder.RegisterComponentInHierarchy<AreaNpcController>();
@@ -48,6 +53,7 @@ namespace FantasyWorld.Area
 
             // 구역 진입 흐름의 주체
             builder.RegisterEntryPoint<AreaFlow>();
+            builder.RegisterEntryPoint<AreaAmbience>();
         }
     }
 }

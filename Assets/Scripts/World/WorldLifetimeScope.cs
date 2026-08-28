@@ -49,7 +49,7 @@ namespace FantasyWorld.World
 
             // 매 프레임 / 이벤트 콜백이 필요한 시스템 — 빌드 시 즉시 생성
             builder.RegisterEntryPoint<InteractionSystem>().AsSelf();
-            builder.RegisterEntryPoint<GameplayAudioDirector>();
+            builder.RegisterEntryPoint<GameplayAudioDirector>().AsSelf();
 
             // World 세션 흐름의 주체
             builder.RegisterEntryPoint<WorldFlow>();
