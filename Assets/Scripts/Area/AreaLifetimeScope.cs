@@ -48,11 +48,11 @@ namespace FantasyWorld.Area
             builder.RegisterInstance(_ambience);
 
             // 씬에 배치된 구역 전용 컴포넌트
-            builder.RegisterComponentInHierarchy<AreaNpcController>();
             builder.RegisterComponentInHierarchy<AreaBoundary>();
 
             // 구역 진입 흐름의 주체
             builder.RegisterEntryPoint<AreaFlow>();
+            builder.RegisterEntryPoint<AreaNpcController>();
             builder.RegisterEntryPoint<AreaAmbience>();
         }
     }
