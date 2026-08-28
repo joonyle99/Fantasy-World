@@ -93,8 +93,9 @@ namespace FantasyWorld.Core
                     return;
                 }
 
-                // 같은 이벤트면 재시작하지 않는다 (구역 로드 때마다 처음으로 튀는 것 방지)
-                if (_playing && _current.Guid.Equals(sound.Guid))
+                // 같은 이벤트가 아직 실제로 흐르고 있으면 재시작하지 않는다
+                // (구역 로드 때마다 처음으로 튀는 것 방지 — 단, 자연 종료된 경우엔 다시 건다)
+                if (_current.Guid.Equals(sound.Guid) && IsActuallyPlaying())
                     return;
 
                 Stop(allowFadeOut: true);
@@ -119,6 +120,18 @@ namespace FantasyWorld.Core
             {
                 if (_playing)
                     _instance.setParameterByName(parameterName, value);
+            }
+
+            /// <summary>루프가 아닌 이벤트가 자연 종료됐을 수 있으므로 실제 재생 상태를 확인한다.</summary>
+            private bool IsActuallyPlaying()
+            {
+                if (!_playing)
+                    return false;
+
+                if (_instance.getPlaybackState(out var state) != FMOD.RESULT.OK)
+                    return false;
+
+                return state != FMOD.Studio.PLAYBACK_STATE.STOPPED;
             }
         }
     }
