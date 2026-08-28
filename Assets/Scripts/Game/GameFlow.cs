@@ -5,6 +5,7 @@ using VContainer.Unity;
 using FantasyWorld.Core;
 using JoonyleGameDevKit;
 using Cysharp.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
 namespace FantasyWorld.Game
 {
@@ -25,6 +26,7 @@ namespace FantasyWorld.Game
         private readonly GameStateController<GameState> _stateController = new();
 
         private bool _busy;
+        private UniTaskCompletionSource _worldReady;
 
         public GameState CurrentState => _stateController.CurrState;
 
@@ -43,6 +45,13 @@ namespace FantasyWorld.Game
         {
             _stateController.OnStateChanged += OnStateChanged;
             _inputService.PausePerformed += TogglePause;
+
+            // 부팅 시 이미 타이틀 씬이 열려 있으면(빌드 0번 씬) 다시 로드하지 않는다.
+            if (SceneManager.GetActiveScene().name == TITLE_SCENE)
+            {
+                _stateController.ChangeState(GameState.Title);
+                return;
+            }
 
             await GoToTitle();
         }
@@ -64,11 +73,26 @@ namespace FantasyWorld.Game
             _busy = true;
             _stateController.ChangeState(GameState.Loading);
 
+            _worldReady = new UniTaskCompletionSource();
+
             // GameLifetimeScope(_scope) 를 부모로 World 씬을 로드한다.
             await _sceneLoader.LoadAsync(WORLD_SCENE, _scope);
 
+            // WorldFlow 가 첫 구역 로드까지 마쳤다고 알릴 때까지 기다린다 —
+            // 바닥 없는 World 만 뜬 화면이 노출되지 않도록. 로딩 오버레이는 이 동안 유지된다.
+            await _worldReady.Task;
+
             _stateController.ChangeState(GameState.Playing);
             _busy = false;
+        }
+
+        /// <summary>
+        /// WorldFlow 가 첫 구역 로드까지 마치면 호출한다. StartGame 이 이 신호를 받고 Playing 으로 전환한다.
+        /// (asmdef 를 분리하면 World→Game 참조 대신 인터페이스로 뒤집는다)
+        /// </summary>
+        public void NotifyWorldReady()
+        {
+            _worldReady?.TrySetResult();
         }
 
         /// <summary>일시정지 메뉴 "타이틀로" 버튼에서 호출.</summary>

@@ -37,11 +37,14 @@ namespace FantasyWorld.World
 
             _transitioning = true;
 
-            if (!string.IsNullOrEmpty(_currentArea))
-                await _sceneLoader.UnloadAsync(_currentArea);
+            var previous = _currentArea;
 
+            // 새 구역을 먼저 얹고 나서 이전 구역을 내린다 — 그 사이 바닥이 사라지지 않게.
             await _sceneLoader.LoadAdditiveAsync(areaScene, _worldScope, setActive: true);
             _currentArea = areaScene;
+
+            if (!string.IsNullOrEmpty(previous))
+                await _sceneLoader.UnloadAsync(previous);
 
             _transitioning = false;
         }

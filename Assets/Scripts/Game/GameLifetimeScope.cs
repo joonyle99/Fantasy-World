@@ -52,13 +52,16 @@ using UnityEngine.InputSystem;
 //  이 파일의 실행 흐름
 // ------------------------------------------------------------
 //    앱 시작
-//      -> Awake -> base.Awake
-//           -> Configure(builder): 6개 등록 (설계도만)
-//           -> 컨테이너 빌드
-//                InputService, GameFlow 즉시 생성 (+ 생성자 주입)
-//                GameFlow <- SceneLoader, AudioService, InputService
-//                InputService.Initialize() / GameFlow.StartAsync() 호출
-//      -> DontDestroyOnLoad (씬이 바뀌어도 유지)
+//      -> RuntimeInitializer 가 Resources/Prefabs/Bootstrapper 프리팹 생성 (Instantiate)
+//      -> Awake 호출 (실행 순서대로):
+//           LifetimeScope.Awake (base, [DefaultExecutionOrder(-5000)] 라 먼저):
+//             -> Configure(builder): 등록 (설계도만)
+//             -> 컨테이너 빌드
+//                  InputService, GameFlow 즉시 생성 (+ 생성자 주입)
+//                  GameFlow <- SceneLoader, AudioService, InputService
+//                  InputService.Initialize() / GameFlow.StartAsync() 호출
+//           Bootstrapper.Awake (PersistentSingleton): DontDestroyOnLoad(gameObject)
+//             -> 같은 GO 라 이 스코프도 씬 전환에도 유지된다
 //      ...
 //    스코프 파괴 -> GameFlow.Dispose(), InputService.Dispose()
 //
@@ -81,23 +84,19 @@ using UnityEngine.InputSystem;
 namespace FantasyWorld.Game
 {
     /// <summary>
-    /// 앱 전역 컴포지션 루트. 부트스트랩 씬에 하나만 배치하며, 씬이 전환되어도 파괴되지 않는다.
+    /// 앱 전역 컴포지션 루트. Resources/Prefabs/Bootstrapper 프리팹에 얹혀 앱 시작 시 생성되며,
+    /// 호스트인 Bootstrapper(PersistentSingleton)가 DontDestroyOnLoad 로 씬 전환에도 유지시킨다.
     /// 여기 등록한 서비스는 앱 생명주기 내내 유지되고, 하위 씬/구역 스코프가 부모로 참조한다.
     /// </summary>
     public sealed class GameLifetimeScope : LifetimeScope
     {
         [SerializeField] private InputActionAsset _inputActions;
 
-        protected override void Awake()
-        {
-            base.Awake();
-
-            // 씬을 넘나들며 유지되어야 하는 전역 스코프이므로 파괴를 막는다
-            DontDestroyOnLoad(gameObject);
-        }
-
         protected override void Configure(IContainerBuilder builder)
         {
+            // Bootstrapper 프리팹에 얹힌 상주 뷰 — 씬에서 찾아 주입
+            builder.RegisterComponentInHierarchy<LoadingScreen>();
+
             // 앱이 살아있는 동안 계속 필요한 인프라 서비스
             builder.Register<SaveSystem>(Lifetime.Singleton);
             builder.Register<SettingsService>(Lifetime.Singleton);
