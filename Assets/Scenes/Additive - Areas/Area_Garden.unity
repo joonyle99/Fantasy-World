@@ -416,11 +416,11 @@ MonoBehaviour:
   _objectiveSet: {fileID: 11400000, guid: a1ab7fc0d8587634889fbed628158710, type: 2}
   _ambience:
     Guid:
-      Data1: 1801046956
-      Data2: 1092428650
-      Data3: -744946289
-      Data4: 1861499134
-    Path: event:/New Event
+      Data1: -882549956
+      Data2: 1332676314
+      Data3: -1035326837
+      Data4: -19263547
+    Path: event:/Amb_test
 --- !u!1 &1005599723
 GameObject:
   m_ObjectHideFlags: 0
